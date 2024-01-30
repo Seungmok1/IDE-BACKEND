@@ -12,4 +12,5 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 @RequiredArgsConstructor
 @Slf4j
 public class SecurityConfig {
+
 }
