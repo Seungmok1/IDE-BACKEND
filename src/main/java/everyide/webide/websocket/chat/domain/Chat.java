@@ -1,4 +1,4 @@
-package everyide.webide.chat.domain;
+package everyide.webide.websocket.chat.domain;
 
 import everyide.webide.BaseEntity;
 import jakarta.persistence.*;
