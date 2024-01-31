@@ -3,8 +3,8 @@ package everyide.webide.config.auth.filter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import everyide.webide.config.auth.jwt.JwtTokenProvider;
 import everyide.webide.config.auth.user.CustomUserDetails;
-import everyide.webide.model.dao.User;
-import everyide.webide.repository.UserRepository;
+import everyide.webide.user.UserRepository;
+import everyide.webide.user.domain.User;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -72,8 +73,11 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
             User user = oUser.get();
             CustomUserDetails customUserDetails = CustomUserDetails.create(user);
 
-            // 이 부분 우리는 OAuth인지 일반 로그인인지 구분할 필요가 있음
-            // 이 부분 설명 좀 필요함
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(customUserDetails.getUsername(), null, customUserDetails.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(authentication); // 세션에 넣기
+            return authentication;
         }
+        return null;
     }
 }
