@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 
 public class CustomUserDetails implements OAuth2User, UserDetails {
-
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -46,7 +45,6 @@ public class CustomUserDetails implements OAuth2User, UserDetails {
                 authorities
         );
     }
-
     public static CustomUserDetails create(User user, Map<String, Object> attributes) { // 오버로딩
         CustomUserDetails customUserDetails = CustomUserDetails.create(user);
         customUserDetails.setAttributes(attributes);
@@ -97,4 +95,6 @@ public class CustomUserDetails implements OAuth2User, UserDetails {
     public String getName() {
         return String.valueOf(id);
     }
+
+
 }

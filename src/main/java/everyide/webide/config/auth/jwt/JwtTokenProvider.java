@@ -1,15 +1,26 @@
 package everyide.webide.config.auth.jwt;
 
+
+import everyide.webide.user.domain.User;
+import everyide.webide.user.UserRepository;
 import io.jsonwebtoken.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import  com.amazonaws.services.kms.model.NotFoundException;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static everyide.webide.config.auth.jwt.JwtProperties.SECRET_KEY;
 
+@Component
+@RequiredArgsConstructor
 public class JwtTokenProvider {
+
+    private final UserRepository userRepository;
 
     public String createToken(Authentication authentication) {
 
@@ -55,5 +66,17 @@ public class JwtTokenProvider {
         } catch (IllegalArgumentException e) {
             return "token is wrong";
         }
+    }
+
+    public String generateAccessTokenFromRefreshToken(String refreshToken) {
+        Optional<User> optionalUser = userRepository.findAllByRefreshToken(refreshToken);
+        User user = optionalUser.orElseThrow(() -> new NotFoundException("유저가 없는디"));
+
+        return Jwts.builder()
+                .subject(user.getEmail())
+                .claim("roles", user.getRole())
+                .expiration(new Date(new Date().getTime() + JwtProperties.ACCESS_TOKEN_EXPIRATION_TIME))
+                .signWith(SECRET_KEY)
+                .compact();
     }
 }
