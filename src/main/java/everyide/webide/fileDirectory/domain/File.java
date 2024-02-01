@@ -18,6 +18,7 @@ public class File extends BaseEntity {
     private String path;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "directory_id")
     @JsonIgnore
     private Directory directory;
 }

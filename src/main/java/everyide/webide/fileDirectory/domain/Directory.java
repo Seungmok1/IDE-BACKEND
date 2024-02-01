@@ -29,7 +29,7 @@ public class Directory extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     private Container container;
-    @OneToMany
+    @OneToMany(mappedBy = "directory")
     private List<File> files = new ArrayList<>();
 
 }

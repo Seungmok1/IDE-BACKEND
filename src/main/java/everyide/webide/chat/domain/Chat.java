@@ -1,6 +1,7 @@
 package everyide.webide.chat.domain;
 
 import everyide.webide.BaseEntity;
+import everyide.webide.room.domain.Room;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,4 +20,6 @@ public class Chat extends BaseEntity {
 
     @OneToMany
     private List<Message> messages;
+    @OneToOne
+    private Room room;
 }
