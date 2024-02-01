@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>WebSocket Chat Test</title>
+    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stomp-websocket/lib/stomp.min.js"></script>
+</head>
+<body>
+<h1>WebSocket Chat</h1>
+<form id="messageForm">
+    <input type="text" id="messageContent" placeholder="Enter a message">
+    <button type="submit">Send</button>
+</form>
+<div id="messageArea"></div>
+
+<script th:inline="javascript">
+    var stompClient = null;
+
+    function connect() {
+        var socket = new SockJS('/ws'); // 서버의 WebSocket 연결 경로
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function (frame) {
+            console.log('Connected: ' + frame);
+            stompClient.subscribe('/topic/message/3', function (message) {
+                showMessage(JSON.parse(message.body));
+            });
+        });
+    }
+
+    function disconnect() {
+        if (stompClient !== null) {
+            stompClient.disconnect();
+        }
+        console.log("Disconnected");
+    }
+
+    function sendMessage() {
+        var messageContent = document.getElementById('messageContent').value.trim();
+        if(messageContent && stompClient) {
+            var messageDto = {
+                content: messageContent,
+                senderId: 1, // 임시 발신자 ID
+                chatId: 3,
+                contentType: 'TEXT' // 임시 콘텐츠 타입
+            };
+            stompClient.send("/app/message/"+messageDto.chatId, {}, JSON.stringify(messageDto));
+            document.getElementById('messageContent').value = '';
+        }
+    }
+
+    function showMessage(message) {
+        var messageArea = document.getElementById('messageArea');
+        var messageElement = document.createElement('div');
+        messageElement.innerHTML = message.content;
+        messageArea.appendChild(messageElement);
+    }
+
+    document.getElementById('messageForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        sendMessage();
+    });
+
+    connect();
+</script>
+</body>
+</html>
