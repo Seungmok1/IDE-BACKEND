@@ -1,67 +1,62 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>WebSocket Chat Test</title>
+    <title>Chat Room List</title>
     <meta charset="UTF-8">
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/stomp-websocket/lib/stomp.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body>
-<h1>WebSocket Chat</h1>
-<form id="messageForm">
-    <input type="text" id="messageContent" placeholder="Enter a message">
-    <button type="submit">Send</button>
+<h1>Available Chat Rooms</h1>
+<div id="chatRoomList"></div>
+
+<h2>Create a New Chat Room</h2>
+<form id="createRoomForm">
+    <input type="text" id="name" placeholder="Enter room name">
+    <button type="submit">Create Room</button>
 </form>
-<div id="messageArea"></div>
 
-<script th:inline="javascript">
-    var stompClient = null;
-
-    function connect() {
-        var socket = new SockJS('/ws'); // 서버의 WebSocket 연결 경로
-        stompClient = Stomp.over(socket);
-        stompClient.connect({}, function (frame) {
-            console.log('Connected: ' + frame);
-            stompClient.subscribe('/topic/message/3', function (message) {
-                showMessage(JSON.parse(message.body));
-            });
-        });
-    }
-
-    function disconnect() {
-        if (stompClient !== null) {
-            stompClient.disconnect();
-        }
-        console.log("Disconnected");
-    }
-
-    function sendMessage() {
-        var messageContent = document.getElementById('messageContent').value.trim();
-        if(messageContent && stompClient) {
-            var messageDto = {
-                content: messageContent,
-                senderId: 1, // 임시 발신자 ID
-                chatId: 3,
-                contentType: 'TEXT' // 임시 콘텐츠 타입
-            };
-            stompClient.send("/app/message/"+messageDto.chatId, {}, JSON.stringify(messageDto));
-            document.getElementById('messageContent').value = '';
-        }
-    }
-
-    function showMessage(message) {
-        var messageArea = document.getElementById('messageArea');
-        var messageElement = document.createElement('div');
-        messageElement.innerHTML = message.content;
-        messageArea.appendChild(messageElement);
-    }
-
-    document.getElementById('messageForm').addEventListener('submit', function (event) {
+<script>
+    document.getElementById('createRoomForm').addEventListener('submit', function(event) {
         event.preventDefault();
-        sendMessage();
+        var name = document.getElementById('name').value.trim();
+        if(name) {
+            createRoom(name);
+        }
     });
 
-    connect();
+    function loadChatRooms() {
+        axios.get('/api/loadRooms')
+            .then(function(response) {
+                const chatRoomList = document.getElementById('chatRoomList');
+                chatRoomList.innerHTML = ''; // 목록 초기화
+                response.data.forEach(function(room) {
+                    const roomElement = document.createElement('div');
+                    const roomLink = document.createElement('a');
+                    roomLink.href = `/chatRoom.html?roomId=${room.roomId}`;
+                    roomLink.textContent = room.name;
+                    roomElement.appendChild(roomLink);
+                    chatRoomList.appendChild(roomElement);
+                });
+            })
+            .catch(function(error) {
+                console.log('Error loading chat rooms:', error);
+            });
+    }
+
+    function createRoom(name) {
+        axios.post('/api/createRoom', { name: name })
+            .then(function(response) {
+                loadChatRooms(); // 채팅방 목록 다시 로드
+            })
+            .catch(function(error) {
+                console.error('Error creating room:', error);
+            });
+    }
+
+    // 페이지 로드 시 채팅방 목록 로드
+    window.onload = function() {
+        loadChatRooms();
+    };
 </script>
 </body>
 </html>

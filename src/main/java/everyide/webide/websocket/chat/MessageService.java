@@ -19,19 +19,19 @@ public class MessageService {
     private final MessageRepository messageRepository;
 
     @Transactional
-    public void send(MessageDto messageDto, Long chatId) {
+    public void send(MessageDto messageDto, String roomId) {
         Message message = Message.builder()
-                .chatId(chatId)
+                .roomId(roomId)
                 .contentType(messageDto.getContentType())
                 .content(messageDto.getContent())
                 .senderId(messageDto.getSenderId())
                 .build();
         messageRepository.save(message);
-        kafkaTemplate.send(KafkaProperties.KAFKA_TOPIC, messageDto);
+        kafkaTemplate.send(KafkaProperties.CHAT_TOPIC, messageDto);
     }
 
-    @KafkaListener(topics = KafkaProperties.KAFKA_TOPIC)
+    @KafkaListener(topics = KafkaProperties.CHAT_TOPIC)
     public void receive(MessageDto messageDto) {
-        simpMessagingTemplate.convertAndSend("/topic/message/" + messageDto.getChatId(), messageDto);
+        simpMessagingTemplate.convertAndSend("/topic/rooms/" + messageDto.getRoomId(), messageDto);
     }
 }
