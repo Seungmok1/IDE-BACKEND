@@ -4,33 +4,33 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import everyide.webide.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.UUID;
 
+@Document(collection = "message")
 @Getter
 @ToString
-@Builder
 @NoArgsConstructor
-@AllArgsConstructor
-@Table(name = "messages")
-public class Message extends BaseEntity implements Serializable {
+public class Message{
 
     private String id;
-    @NonNull
     private Long chatId;
-    @NonNull
     private String contentType;
-    @NonNull
     private String content;
-    private String sender;
     private Long senderId;
+    private LocalDateTime sendDate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnore
-    private Chat chat;
-
-    public void setId(String id) {
-        this.id = id;
+    @Builder
+    public Message(Long chatId, String contentType, String content, Long senderId) {
+        id = UUID.randomUUID().toString();
+        this.chatId = chatId;
+        this.contentType = contentType;
+        this.content = content;
+        this.senderId = senderId;
+        sendDate = LocalDateTime.now().atZone(ZoneId.of("Asia/Seoul")).toLocalDateTime();
     }
-
 }

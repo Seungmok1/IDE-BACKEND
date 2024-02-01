@@ -17,6 +17,4 @@ public class Chat extends BaseEntity {
     private Long id;
     private String name;
 
-    @OneToMany
-    private List<Message> messages;
 }

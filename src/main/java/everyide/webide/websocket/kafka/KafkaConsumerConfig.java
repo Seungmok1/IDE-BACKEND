@@ -1,4 +1,4 @@
-package everyide.webide.websocket.kafka.consumer;
+package everyide.webide.websocket.kafka;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -17,15 +17,13 @@ public class KafkaConsumerConfig {
 
     @Bean
     public ConsumerFactory<String, Object> consumerFactory(){
-        JsonDeserializer<Object> deserializer = new JsonDeserializer<>();
-        // 패키지 신뢰 오류로 인해 모든 패키지를 신뢰하도록 작성
-        deserializer.addTrustedPackages("*");
 
         Map<String, Object> config = new HashMap<>();
-        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, "group_1");
+        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, KafkaProperties.BROKER);
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, KafkaProperties.GROUP_ID);
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, deserializer);
+        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+        config.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
 
         return new DefaultKafkaConsumerFactory<>(config);
     }

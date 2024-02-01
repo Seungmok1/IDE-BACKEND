@@ -1,4 +1,4 @@
-package everyide.webide.repository;
+package everyide.webide.user;
 
 import everyide.webide.model.dao.User;
 import org.springframework.data.jpa.repository.JpaRepository;
