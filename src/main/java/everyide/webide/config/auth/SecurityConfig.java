@@ -59,7 +59,7 @@ public class SecurityConfig {
                 .addFilterAfter(new JwtAuthorizationFilter(userRepository, jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                new AntPathRequestMatcher("/quest/**")
+                                new AntPathRequestMatcher("/everyide/**")
                         ).hasRole("USER")
                         .anyRequest().permitAll());
         return httpSecurity.build();
