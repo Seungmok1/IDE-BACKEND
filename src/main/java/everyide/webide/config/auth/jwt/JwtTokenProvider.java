@@ -70,7 +70,7 @@ public class JwtTokenProvider {
 
     public String generateAccessTokenFromRefreshToken(String refreshToken) {
         Optional<User> optionalUser = userRepository.findAllByRefreshToken(refreshToken);
-        User user = optionalUser.orElseThrow(() -> new NotFoundException("유저가 없는디"));
+        User user = optionalUser.orElseThrow(() -> new NotFoundException("User not exist"));
 
         return Jwts.builder()
                 .subject(user.getEmail())
