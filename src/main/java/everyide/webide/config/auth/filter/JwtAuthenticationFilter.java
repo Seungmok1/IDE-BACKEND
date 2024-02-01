@@ -11,6 +11,7 @@ import everyide.webide.user.UserRepository;
 import everyide.webide.user.domain.User;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -50,11 +51,11 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         ObjectMapper om = new ObjectMapper();
         LoginRequestDto loginRequestDto = null;
-        log.info("loginRequestDto 초기화 완료");
+        log.info("loginRequestDto initialize");
 
         try {
             loginRequestDto = om.readValue(request.getInputStream(), LoginRequestDto.class);
-            log.info("Request 내용 스트림 변환 후 LoginRequestDto에 삽입");
+            log.info("LoginRequestDto insert request");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -64,9 +65,9 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                 new UsernamePasswordAuthenticationToken(
                         loginRequestDto.getUsername(),
                         loginRequestDto.getPassword());
-        log.info("UsernamePasswordAuthenticationToken 생성 완료");
+        log.info("UsernamePasswordAuthenticationToken Complete");
         try {
-            log.info("시도중");
+            log.info("Try...");
             return this.getAuthenticationManager().authenticate(authenticationToken);
         } catch (NullPointerException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -77,16 +78,24 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
-        log.info("크레덴셜 로그인 인증 성공");
+        log.info("Credential Login Success!");
         //토큰 발급 시작
         String token = jwtTokenProvider.createToken(authResult);
         String refresh = jwtTokenProvider.createRefreshToken(authResult);
         log.info(token);
         log.info(refresh);
         ObjectMapper om = new ObjectMapper();
+
         response.addHeader("Authorization", "Bearer " + token);
-        response.addHeader("RefreshToken", "Bearer " + refresh);
-        log.info("헤더에 토큰 삽입 완료");
+        log.info("AccessToken in Header={}", token);
+
+        Cookie refreshTokenCookie = new Cookie("RefreshToken", refresh);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7);
+        response.addCookie(refreshTokenCookie);
+        log.info("RefreshToken in Cookie={}", refresh);
+
         String role = authResult.getAuthorities().stream().map(GrantedAuthority::getAuthority).findAny().orElse("");
         String userEmail = "";
         if(role.equals("ROLE_USER")){
@@ -100,7 +109,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         userDto.setUserId(user.getId());
         userDto.setAccessToken("Bearer " + token);
         userDto.setRefreshToken(user.getRefreshToken());
-        log.info("Response Body에 User정보 반환 완료");
+        log.info("Response Body insert User");
         String result = om.registerModule(new JavaTimeModule()).writeValueAsString(userDto);
         response.getWriter().write(result);
     }
