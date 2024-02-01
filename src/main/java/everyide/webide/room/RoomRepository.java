@@ -1,5 +1,6 @@
-package everyide.webide.room.domain;
+package everyide.webide.room;
 
+import everyide.webide.room.domain.Room;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
