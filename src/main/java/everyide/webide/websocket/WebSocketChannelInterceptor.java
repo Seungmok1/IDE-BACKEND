@@ -11,28 +11,28 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
-@Slf4j
-@Component
-@RequiredArgsConstructor
+//@Slf4j
+//@Component
+//@RequiredArgsConstructor
 public class WebSocketChannelInterceptor implements ChannelInterceptor {
-
-    @Override
-    public Message<?> preSend(Message<?> message, MessageChannel channel) {
-        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(message);
-        log.info("full message={}", message);
-
-        //TODO 인증 및 인가 기능 추가
-
-        return ChannelInterceptor.super.preSend(message, channel);
-    }
-
-    @EventListener
-    public void connect(SessionConnectEvent event) {
-        log.info("입장");
-    }
-
-    @EventListener
-    public void disconnect(SessionDisconnectEvent event) {
-        log.info("퇴장");
-    }
+//
+//    @Override
+//    public Message<?> preSend(Message<?> message, MessageChannel channel) {
+//        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(message);
+//        log.info("full message={}", message);
+//
+//        //TODO 인증 및 인가 기능 추가
+//
+//        return ChannelInterceptor.super.preSend(message, channel);
+//    }
+//
+//    @EventListener
+//    public void connect(SessionConnectEvent event) {
+//        log.info("입장");
+//    }
+//
+//    @EventListener
+//    public void disconnect(SessionDisconnectEvent event) {
+//        log.info("퇴장");
+//    }
 }

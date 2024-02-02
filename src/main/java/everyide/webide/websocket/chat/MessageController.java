@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class MessageController {
 
-    private final MessageService messageService;
-
-    @MessageMapping("/message/{chatId}")
-    public void message(MessageDto messageDto, @DestinationVariable Long chatId){
-        messageService.send(messageDto, chatId);
-    }
+//    private final MessageService messageService;
+//
+//    @MessageMapping("/message/{chatId}")
+//    public void message(MessageDto messageDto, @DestinationVariable Long chatId){
+//        messageService.send(messageDto, chatId);
+//    }
 }

@@ -1,12 +1,14 @@
 package everyide.webide.config.auth.user;
 
 import com.amazonaws.services.kms.model.NotFoundException;
+import everyide.webide.config.auth.dto.request.SignRequestDto;
 import everyide.webide.user.UserRepository;
 import everyide.webide.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,4 +35,5 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = byEmail.orElseThrow(() -> new NotFoundException("유저없음"));
         return user;
     }
+
 }
