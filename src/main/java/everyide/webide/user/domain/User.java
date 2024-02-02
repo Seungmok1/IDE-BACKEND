@@ -71,4 +71,8 @@ public class User extends BaseEntity {
         this.name = oAuth2UserInfo.getName();
         this.picture = oAuth2UserInfo.getImageUrl();
     }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }
