@@ -1,5 +1,6 @@
 package everyide.webide.config.auth.api;
 
+import everyide.webide.config.auth.dto.request.PasswordChangeRequest;
 import everyide.webide.config.auth.dto.request.SignRequestDto;
 import everyide.webide.config.auth.jwt.JwtTokenProvider;
 import everyide.webide.config.auth.user.CustomUserDetailsService;
@@ -61,5 +62,10 @@ public class AuthController {
     @GetMapping("/test")
     public String test() {
         return "test";
+    }
+    @PostMapping("/user/changePassword")
+    public ResponseEntity<?> changePassword(@RequestBody PasswordChangeRequest passwordChangeRequest) {
+        userService.changePassword(passwordChangeRequest.getEmail(), passwordChangeRequest.getOldPassword(), passwordChangeRequest.getNewPassword());
+        return ResponseEntity.ok().body("Password changed successfully");
     }
 }
