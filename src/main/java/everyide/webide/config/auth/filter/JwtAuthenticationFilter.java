@@ -103,7 +103,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             userEmail = customUserDetails.getUsername();
         }
         User user = customUserDetailsService.selcetUser(userEmail);
-        user.setRefreshToken("Bearer " + refresh);
+        user.setRefreshToken(refresh);
         userRepository.save(user);
         UserDto userDto = new UserDto();
         userDto.setUserId(user.getId());
@@ -113,6 +113,4 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String result = om.registerModule(new JavaTimeModule()).writeValueAsString(userDto);
         response.getWriter().write(result);
     }
-
-
 }

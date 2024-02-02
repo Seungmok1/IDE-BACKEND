@@ -1,5 +1,8 @@
 package everyide.webide.config.auth;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import everyide.webide.config.auth.dto.response.UserDto;
 import everyide.webide.config.auth.filter.JwtAuthenticationFilter;
 import everyide.webide.config.auth.filter.JwtAuthorizationFilter;
 import everyide.webide.config.auth.jwt.JwtTokenProvider;
@@ -7,7 +10,11 @@ import everyide.webide.config.auth.user.CustomUserDetails;
 import everyide.webide.config.auth.user.CustomUserDetailsService;
 import everyide.webide.config.auth.user.oauth2.CustomOAuth2UserService;
 import everyide.webide.user.UserRepository;
-import io.jsonwebtoken.Jwt;
+import everyide.webide.user.domain.User;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -20,6 +27,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -29,6 +39,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -53,16 +64,68 @@ public class SecurityConfig {
         httpSecurity
                 .csrf(AbstractHttpConfigurer::disable) // 스프링 시큐리티의 HTTP 보안 설정에서 CSRF 보호기능 비활성화 (Cross-Site Request Forgery, 사이트 간 요청 위조)
                 .formLogin(AbstractHttpConfigurer::disable) // 폼 로그인 비활성화 : API 서버와 같이 폼 로그인이 필요없는 방식) 비활성화
+                .httpBasic(AbstractHttpConfigurer::disable)
                 .cors(configurer -> configurer.configurationSource(corsConfigurationSource())) // (Cross-Origin Resource Sharing) 웹 앱의 보안을 유지하면서 다른 출처의 리소스 요청을 허용하도록 설정
                 .sessionManagement(configure -> configure.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 서버가 사용자 세션을 유지하지 않음. 서버의 확장성을 높이고 client와 server 간의 결합도를 낮춘다.
-                .addFilter(new JwtAuthenticationFilter(jwtTokenProvider, userRepository, authenticationManager(customUserDetailsService), customUserDetailsService, "/auth/token"))
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                        .successHandler(this::onAuthenticationSuccess)
+                        .failureHandler(this::onAuthenticationFailure))
+                .addFilter(new JwtAuthenticationFilter(jwtTokenProvider, userRepository, authenticationManager(customUserDetailsService), customUserDetailsService, "/auth"))
                 .addFilterAfter(new JwtAuthorizationFilter(userRepository, jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                new AntPathRequestMatcher("/quest/**")
-                        ).hasRole("USER")
-                        .anyRequest().permitAll());
+                                new AntPathRequestMatcher("/"),
+                                new AntPathRequestMatcher("/signup"),
+                                new AntPathRequestMatcher("/login"),
+                                new AntPathRequestMatcher("/auth")
+                        ).permitAll()
+                        .anyRequest().authenticated());
+
         return httpSecurity.build();
+    }
+
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+                                        Authentication authentication) throws IOException, ServletException {
+        log.info("OAuth Login Success!");
+        //토큰 발급 시작
+        String token = jwtTokenProvider.createToken(authentication);
+        String refresh = jwtTokenProvider.createRefreshToken(authentication);
+        log.info(token);
+        log.info(refresh);
+        ObjectMapper om = new ObjectMapper();
+
+        response.addHeader("Authorization", "Bearer " + token);
+        log.info("AccessToken in Header={}", token);
+
+        Cookie refreshTokenCookie = new Cookie("RefreshToken", refresh);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7);
+        response.addCookie(refreshTokenCookie);
+        log.info("RefreshToken in Cookie={}", refresh);
+
+        String role = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).findAny().orElse("");
+        String userEmail = "";
+        if(role.equals("ROLE_USER")){
+            CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+            userEmail = customUserDetails.getUsername();
+        }
+        User user = customUserDetailsService.selcetUser(userEmail);
+        user.setRefreshToken(refresh);
+        userRepository.save(user);
+        UserDto userDto = new UserDto();
+        userDto.setUserId(user.getId());
+        userDto.setAccessToken("Bearer " + token);
+        userDto.setRefreshToken(user.getRefreshToken());
+        log.info("Response Body insert User");
+        String result = om.registerModule(new JavaTimeModule()).writeValueAsString(userDto);
+        response.getWriter().write(result);
+    }
+
+    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
+                                        AuthenticationException exception) throws IOException, ServletException {
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
     }
 
     @Bean

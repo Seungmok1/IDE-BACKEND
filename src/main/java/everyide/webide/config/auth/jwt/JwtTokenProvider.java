@@ -79,4 +79,9 @@ public class JwtTokenProvider {
                 .signWith(SECRET_KEY)
                 .compact();
     }
+
+    public boolean validateRefreshToken(String token) {
+        Optional<User> optionalUser = userRepository.findAllByRefreshToken(token);
+        return optionalUser.isPresent();
+    }
 }
