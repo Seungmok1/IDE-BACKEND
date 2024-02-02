@@ -31,10 +31,11 @@ public class UserService {
     public void signUpUser(SignRequestDto signRequestDto) {
         User user = User.builder()
                 .name(signRequestDto.getName())
-                .email(signRequestDto.getUsername())
+                .email(signRequestDto.getEmail())
                 .password(passwordEncoder.encode(signRequestDto.getPassword()))
                 .role("USER")
                 .build();
+        userRepository.save(user);
     }
 
     public void changePassword(String email, String oldPassword, String newPassword) {
