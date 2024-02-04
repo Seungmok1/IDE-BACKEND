@@ -2,9 +2,8 @@ package everyide.webide.config.auth.api;
 
 import everyide.webide.config.auth.dto.request.PasswordChangeRequest;
 import everyide.webide.config.auth.dto.request.SignRequestDto;
+import everyide.webide.config.auth.dto.request.UserResponse;
 import everyide.webide.config.auth.jwt.JwtTokenProvider;
-import everyide.webide.config.auth.user.CustomUserDetailsService;
-import everyide.webide.user.UserRepository;
 import everyide.webide.user.UserService;
 import everyide.webide.user.domain.User;
 import io.jsonwebtoken.Claims;
@@ -12,10 +11,10 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -66,6 +65,21 @@ public class AuthController {
     public String test() {
         return "test";
     }
+
+    @GetMapping("/user/updatepassword")
+    public UserResponse getUserInfo() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName(); // JWT에서 사용자의 이메일 가져오기
+
+        // 이메일을 사용하여 사용자 정보 조회
+        User user = userService.findByEmail(email);
+
+        // 필요한 정보만 UserResponse 객체에 담아 반환
+        return new UserResponse(user.getName(), user.getEmail());
+    }
+
+
+
     @PatchMapping("/user/updatepassword")
     public ResponseEntity<?> changePassword(@RequestBody PasswordChangeRequest passwordChangeRequest) {
         userService.changePassword(passwordChangeRequest.getEmail(), passwordChangeRequest.getOldPassword(), passwordChangeRequest.getNewPassword());
