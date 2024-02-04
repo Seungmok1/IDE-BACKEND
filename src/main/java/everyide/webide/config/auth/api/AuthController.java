@@ -10,10 +10,14 @@ import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 @RestController
@@ -77,12 +81,29 @@ public class AuthController {
         // 필요한 정보만 UserResponse 객체에 담아 반환
         return new UserResponse(user.getName(), user.getEmail());
     }
-
-
-
     @PatchMapping("/user/updatepassword")
     public ResponseEntity<?> changePassword(@RequestBody PasswordChangeRequest passwordChangeRequest) {
-        userService.changePassword(passwordChangeRequest.getEmail(), passwordChangeRequest.getOldPassword(), passwordChangeRequest.getNewPassword());
-        return ResponseEntity.ok().body("Password changed successfully");
+        Map<String, Object> response = new HashMap<>();
+        try {
+            boolean passwordChanged = userService.changePassword(passwordChangeRequest.getEmail(), passwordChangeRequest.getOldPassword(), passwordChangeRequest.getNewPassword());
+            if (!passwordChanged) {
+                // 비밀번호 변경 시도 실패 (예: 기존 비밀번호 불일치)
+                response.put("status", true);
+                response.put("message", "Current password is incorrect.");
+                // 로그인 상태 유지를 위해 BadRequest 응답
+                return ResponseEntity.badRequest().body(response);
+            }
+            // 비밀번호 변경 성공
+            response.put("status", false);
+            response.put("message", "Password changed successfully.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            // 예외 처리
+            response.put("status", true);
+            response.put("message", e.getMessage());
+            // 서버 에러 상황에서도 클라이언트에 적절한 응답을 제공
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
+
 }
