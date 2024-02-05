@@ -30,15 +30,15 @@ public class WebSocketController {
 //    public void message(MessageDto messageDto, @DestinationVariable String roomId){
 //        messageService.send(messageDto, roomId);
 //    }
-    private final MessageService messageService;
-
-    @MessageMapping("/message/{roomId}")
-    public void message(MessageDto messageDto, @DestinationVariable String roomId){
-        messageService.send(messageDto, roomId);
-    }
-
-    @MessageMapping("/run/{roomId}")
-    public void run(@DestinationVariable String roomId) {
-
-    }
+//    private final MessageService messageService;
+//
+//    @MessageMapping("/message/{roomId}")
+//    public void message(MessageDto messageDto, @DestinationVariable String roomId){
+//        messageService.send(messageDto, roomId);
+//    }
+//
+//    @MessageMapping("/run/{roomId}")
+//    public void run(@DestinationVariable String roomId) {
+//
+//    }
 }

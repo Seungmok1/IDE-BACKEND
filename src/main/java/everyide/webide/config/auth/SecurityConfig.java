@@ -5,12 +5,14 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import everyide.webide.config.auth.dto.response.UserDto;
 import everyide.webide.config.auth.filter.JwtAuthenticationFilter;
 import everyide.webide.config.auth.filter.JwtAuthorizationFilter;
+import everyide.webide.config.auth.handler.CustomLogoutSuccessHandler;
 import everyide.webide.config.auth.handler.OAuth2AuthenticationSuccessHandler;
 import everyide.webide.config.auth.jwt.JwtTokenProvider;
 import everyide.webide.config.auth.user.CustomUserDetails;
 import everyide.webide.config.auth.user.CustomUserDetailsService;
 import everyide.webide.config.auth.user.oauth2.CustomOAuth2UserService;
 import everyide.webide.user.UserRepository;
+import everyide.webide.user.UserService;
 import everyide.webide.user.domain.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -71,8 +73,11 @@ public class SecurityConfig {
                 .sessionManagement(configure -> configure.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 서버가 사용자 세션을 유지하지 않음. 서버의 확장성을 높이고 client와 server 간의 결합도를 낮춘다.
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                        .successHandler(oAuth2AuthenticationSuccessHandler)
-                        .failureHandler(this::onAuthenticationFailure))
+                        .successHandler(this::onAuthenticationSuccess)
+                        .failureHandler(this::onAuthenticationFailure)
+                )
+                .logout(logout -> logout.logoutUrl("/logout").logoutSuccessHandler(new CustomLogoutSuccessHandler(jwtTokenProvider, customUserDetailsService)).deleteCookies("JSESSIONID")
+                        .permitAll())
                 .addFilter(new JwtAuthenticationFilter(jwtTokenProvider, userRepository, authenticationManager(customUserDetailsService), customUserDetailsService, "/auth"))
                 .addFilterAfter(new JwtAuthorizationFilter(userRepository, jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
@@ -80,9 +85,12 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/"),
                                 new AntPathRequestMatcher("/signup"),
                                 new AntPathRequestMatcher("/login"),
-                                new AntPathRequestMatcher("/auth")
+                                new AntPathRequestMatcher("/auth"),
+                                new AntPathRequestMatcher("/token/**"),
+                                new AntPathRequestMatcher("/logout/**")
                         ).permitAll()
                         .anyRequest().authenticated());
+
 
         return httpSecurity.build();
     }
@@ -123,6 +131,7 @@ public class SecurityConfig {
         log.info("Response Body insert User");
         String result = om.registerModule(new JavaTimeModule()).writeValueAsString(userDto);
         response.getWriter().write(result);
+        response.sendRedirect("http://localhost:5173/oauth2/redirect/?token="+token);
     }
 
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
