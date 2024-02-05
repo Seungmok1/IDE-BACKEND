@@ -21,13 +21,6 @@ public class AuthController {
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
 
-    @GetMapping("/signup")
-    public String signupForm() {
-        // 회원가입 폼을 반환하는 로직
-        return "signup";
-    }
-
-
     @PostMapping("/signup")
     public ResponseEntity<?> signUpUser(@RequestBody SignRequestDto signRequestDto) {
         userService.signUpUser(signRequestDto);
@@ -63,6 +56,12 @@ public class AuthController {
     public String test() {
         return "test";
     }
+
+    @GetMapping("/refresh")
+    public String refresh() {
+        return "API End-point for Refresh Token";
+    }
+
     @PostMapping("/user/changePassword")
     public ResponseEntity<?> changePassword(@RequestBody PasswordChangeRequest passwordChangeRequest) {
         userService.changePassword(passwordChangeRequest.getEmail(), passwordChangeRequest.getOldPassword(), passwordChangeRequest.getNewPassword());

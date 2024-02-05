@@ -19,7 +19,7 @@ public class InitService {
         User user = User.builder()
                 .name("hi")
                 .email("1@1.com")
-                .password(bCryptPasswordEncoder.encode("1234"))
+                .password(bCryptPasswordEncoder.encode("12345678"))
                 .role("USER")
                 .build();
 

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import everyide.webide.config.auth.dto.response.UserDto;
 import everyide.webide.config.auth.filter.JwtAuthenticationFilter;
 import everyide.webide.config.auth.filter.JwtAuthorizationFilter;
+import everyide.webide.config.auth.handler.OAuth2AuthenticationSuccessHandler;
 import everyide.webide.config.auth.jwt.JwtTokenProvider;
 import everyide.webide.config.auth.user.CustomUserDetails;
 import everyide.webide.config.auth.user.CustomUserDetailsService;
@@ -54,6 +55,7 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
     //Spring Security에서 제공하는 클래스, 비밀번호를 안전하게 해싱
     @Bean
@@ -69,7 +71,7 @@ public class SecurityConfig {
                 .sessionManagement(configure -> configure.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 서버가 사용자 세션을 유지하지 않음. 서버의 확장성을 높이고 client와 server 간의 결합도를 낮춘다.
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                        .successHandler(this::onAuthenticationSuccess)
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
                         .failureHandler(this::onAuthenticationFailure))
                 .addFilter(new JwtAuthenticationFilter(jwtTokenProvider, userRepository, authenticationManager(customUserDetailsService), customUserDetailsService, "/auth"))
                 .addFilterAfter(new JwtAuthorizationFilter(userRepository, jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
