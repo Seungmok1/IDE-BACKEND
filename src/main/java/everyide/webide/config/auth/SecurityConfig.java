@@ -5,6 +5,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import everyide.webide.config.auth.dto.response.UserDto;
 import everyide.webide.config.auth.filter.JwtAuthenticationFilter;
 import everyide.webide.config.auth.filter.JwtAuthorizationFilter;
+import everyide.webide.config.auth.jwt.JwtAccessDeniedHandler;
+import everyide.webide.config.auth.jwt.JwtAuthenticationEntryPoint;
 import everyide.webide.config.auth.jwt.JwtTokenProvider;
 import everyide.webide.config.auth.user.CustomUserDetails;
 import everyide.webide.config.auth.user.CustomUserDetailsService;
@@ -80,7 +82,11 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/login"),
                                 new AntPathRequestMatcher("/auth")
                         ).permitAll()
-                        .anyRequest().authenticated());
+                        .anyRequest().authenticated())
+                .exceptionHandling(configurer -> configurer
+                .accessDeniedHandler(new JwtAccessDeniedHandler())
+                .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
+        );
 
         return httpSecurity.build();
     }
