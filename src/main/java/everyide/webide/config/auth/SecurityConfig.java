@@ -7,6 +7,8 @@ import everyide.webide.config.auth.filter.JwtAuthenticationFilter;
 import everyide.webide.config.auth.filter.JwtAuthorizationFilter;
 import everyide.webide.config.auth.jwt.JwtAccessDeniedHandler;
 import everyide.webide.config.auth.jwt.JwtAuthenticationEntryPoint;
+import everyide.webide.config.auth.handler.CustomLogoutSuccessHandler;
+import everyide.webide.config.auth.handler.OAuth2AuthenticationSuccessHandler;
 import everyide.webide.config.auth.jwt.JwtTokenProvider;
 import everyide.webide.config.auth.user.CustomUserDetails;
 import everyide.webide.config.auth.user.CustomUserDetailsService;
@@ -56,6 +58,7 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
     //Spring Security에서 제공하는 클래스, 비밀번호를 안전하게 해싱
     @Bean
@@ -72,7 +75,10 @@ public class SecurityConfig {
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                         .successHandler(this::onAuthenticationSuccess)
-                        .failureHandler(this::onAuthenticationFailure))
+                        .failureHandler(this::onAuthenticationFailure)
+                )
+                .logout(logout -> logout.logoutUrl("/logout").logoutSuccessHandler(new CustomLogoutSuccessHandler(jwtTokenProvider, customUserDetailsService)).deleteCookies("JSESSIONID")
+                        .permitAll())
                 .addFilter(new JwtAuthenticationFilter(jwtTokenProvider, userRepository, authenticationManager(customUserDetailsService), customUserDetailsService, "/auth"))
                 .addFilterAfter(new JwtAuthorizationFilter(userRepository, jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
@@ -80,14 +86,15 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/"),
                                 new AntPathRequestMatcher("/signup"),
                                 new AntPathRequestMatcher("/login"),
-                                new AntPathRequestMatcher("/auth")
+                                new AntPathRequestMatcher("/auth"),
+                                new AntPathRequestMatcher("/token/**"),
+                                new AntPathRequestMatcher("/logout/**")
                         ).permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(configurer -> configurer
                 .accessDeniedHandler(new JwtAccessDeniedHandler())
                 .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
         );
-
         return httpSecurity.build();
     }
 
@@ -127,6 +134,7 @@ public class SecurityConfig {
         log.info("Response Body insert User");
         String result = om.registerModule(new JavaTimeModule()).writeValueAsString(userDto);
         response.getWriter().write(result);
+        response.sendRedirect("http://localhost:5173/oauth2/redirect/?token="+token);
     }
 
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,

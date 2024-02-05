@@ -22,7 +22,7 @@ public class RoomService {
         roomRepository.save(room);
     }
 
-    public List<RoomResponseDto> loadRooms() {
+    public List<RoomResponseDto> loadAllRooms() {
         return roomRepository.findAllBy()
                 .stream()
                 .map(el -> RoomResponseDto.builder()

@@ -15,11 +15,7 @@ public class UserService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
-    public void clearRefreshToken(String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User Not Found with email: " + email));
-        user.setRefreshToken(null); // 리프레시 토큰 값 제거
-        userRepository.save(user);
-    }
+
 
     public void signUpUser(SignRequestDto signRequestDto) {
         User user = User.builder()

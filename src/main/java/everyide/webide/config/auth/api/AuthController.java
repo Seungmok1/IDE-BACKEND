@@ -25,14 +25,6 @@ import java.util.Map;
 public class AuthController {
 
     private final UserService userService;
-    private final JwtTokenProvider jwtTokenProvider;
-
-    @GetMapping("/signup")
-    public String signupForm() {
-        // 회원가입 폼을 반환하는 로직
-        return "signup";
-    }
-
 
     @PostMapping("/signup")
     public ResponseEntity<?> signUpUser(@RequestBody SignRequestDto signRequestDto) {
@@ -43,21 +35,6 @@ public class AuthController {
     @PatchMapping("/user/info")
     public ResponseEntity<?> patchUser(@RequestBody SignRequestDto signRequestDto) {
         return ResponseEntity.ok("success");
-    }
-
-    @PostMapping("/logout")
-    public ResponseEntity<?> logoutUser(@RequestHeader(value="Authorization") String token, HttpServletResponse response) {
-        Claims claims = jwtTokenProvider.getClaims(token.substring(7));
-        String email = claims.getSubject();
-        userService.clearRefreshToken(email);
-
-        Cookie cookie = new Cookie("RefreshToken", "");
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        cookie.setHttpOnly(true);
-        response.addCookie(cookie);
-
-        return ResponseEntity.ok("User logged out successfully");
     }
 
     @GetMapping("/hello")
@@ -81,7 +58,18 @@ public class AuthController {
         // 필요한 정보만 UserResponse 객체에 담아 반환
         return new UserResponse(user.getName(), user.getEmail());
     }
-    @PatchMapping("/user/updatepassword")
+
+    @GetMapping("/refresh")
+    public String refresh() {
+        return "API End-point for Refresh Token";
+    }
+
+    @GetMapping("/")
+    public String hi() {
+        return "testing now";
+    }
+
+    @PostMapping("/user/changePassword")
     public ResponseEntity<?> changePassword(@RequestBody PasswordChangeRequest passwordChangeRequest) {
         Map<String, Object> response = new HashMap<>();
         try {
