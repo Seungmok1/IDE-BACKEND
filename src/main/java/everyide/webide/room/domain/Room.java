@@ -1,7 +1,6 @@
 package everyide.webide.room.domain;
 
 import everyide.webide.BaseEntity;
-import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,15 +17,17 @@ public class Room extends BaseEntity {
 
     @Id
     private String id;
+    private Boolean isLocked;
     private String name;
     private String password;
     private RoomType type;
 
     @Builder
-    public Room(String name, String password, RoomType type) {
+    public Room(Boolean isLocked, String name, String password, RoomType type) {
         id = UUID.randomUUID().toString();
         this.name = name;
         this.password = password;
+        this.isLocked = isLocked;
         this.type = type;
     }
 }

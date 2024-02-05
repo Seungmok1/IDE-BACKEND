@@ -1,10 +1,11 @@
 package everyide.webide.room.domain;
 
-import lombok.Getter;
+import lombok.Data;
 
-@Getter
+@Data
 public class CreateRoomRequestDto {
     private String name;
-//    private String password;
-//    private String roomType;
+    private Boolean isLocked;
+    private String password;
+    private String roomType;
 }
