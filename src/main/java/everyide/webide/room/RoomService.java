@@ -16,8 +16,9 @@ public class RoomService {
     public void create(CreateRoomRequestDto requestDto) {
         Room room = Room.builder()
                 .name(requestDto.getName())
-//                .password(requestDto.getPassword())
-//                .type(RoomType.valueOf(requestDto.getRoomType()))
+                .isLocked(requestDto.getIsLocked())
+                .password(requestDto.getPassword())
+                .type(RoomType.valueOf(requestDto.getRoomType()))
                 .build();
         roomRepository.save(room);
     }

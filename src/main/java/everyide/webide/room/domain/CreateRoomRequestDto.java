@@ -5,6 +5,7 @@ import lombok.Getter;
 @Getter
 public class CreateRoomRequestDto {
     private String name;
-//    private String password;
-//    private String roomType;
+    private Boolean isLocked;
+    private String password;
+    private String roomType;
 }

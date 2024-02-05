@@ -42,9 +42,9 @@ public class AuthController {
         return "hello";
     }
 
-    @GetMapping("/test")
-    public String test() {
-        return "test";
+    @GetMapping("/refresh")
+    public String refresh() {
+        return "API End-point for Refresh Token";
     }
 
     @GetMapping("/user/updatepassword")
@@ -57,16 +57,6 @@ public class AuthController {
 
         // 필요한 정보만 UserResponse 객체에 담아 반환
         return new UserResponse(user.getName(), user.getEmail());
-    }
-
-    @GetMapping("/refresh")
-    public String refresh() {
-        return "API End-point for Refresh Token";
-    }
-
-    @GetMapping("/")
-    public String hi() {
-        return "testing now";
     }
 
     @PostMapping("/user/changePassword")
