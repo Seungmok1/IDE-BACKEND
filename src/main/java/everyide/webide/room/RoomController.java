@@ -14,12 +14,12 @@ public class RoomController {
 
     private final RoomService roomService;
 
-    @PostMapping("/api/room")
+    @PostMapping("/api/community")
     public void createRoom(@RequestBody CreateRoomRequestDto requestDto) {
         roomService.create(requestDto);
     }
 
-    @GetMapping("/api/rooms")
+    @GetMapping("/api/communities")
     public ResponseEntity<?> loadAllRooms() {
         return ResponseEntity.ok().body(roomService.loadAllRooms());
     }

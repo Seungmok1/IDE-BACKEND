@@ -26,9 +26,13 @@ public class RoomService {
     public List<RoomResponseDto> loadAllRooms() {
         return roomRepository.findAllBy()
                 .stream()
+                .filter(el -> el.getAvailable())
                 .map(el -> RoomResponseDto.builder()
                         .roomId(el.getId())
                         .name(el.getName())
+                        .isLocked(el.getIsLocked())
+                        .type(el.getType())
+                        .available(el.getAvailable())
                         .build())
                 .collect(Collectors.toList());
     }
