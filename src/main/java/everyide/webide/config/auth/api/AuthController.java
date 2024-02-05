@@ -32,11 +32,6 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
-    @PatchMapping("/user/info")
-    public ResponseEntity<?> patchUser(@RequestBody SignRequestDto signRequestDto) {
-        return ResponseEntity.ok("success");
-    }
-
     @GetMapping("/hello")
     public String hello() {
         return "hello";

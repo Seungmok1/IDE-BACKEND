@@ -1,7 +1,6 @@
 package everyide.webide.room.domain;
 
 import everyide.webide.BaseEntity;
-import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
