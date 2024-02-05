@@ -6,12 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import everyide.webide.user.domain.User;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Service;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.UUID;
 
 
 @Service
@@ -20,7 +14,6 @@ public class UserService {
 
     private final BCryptPasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
-
 
     public void clearRefreshToken(String email) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User Not Found with email: " + email));
@@ -31,22 +24,25 @@ public class UserService {
     public void signUpUser(SignRequestDto signRequestDto) {
         User user = User.builder()
                 .name(signRequestDto.getName())
-                .email(signRequestDto.getEmail())
+                .email(signRequestDto.getUsername())
                 .password(passwordEncoder.encode(signRequestDto.getPassword()))
                 .role("USER")
                 .build();
         userRepository.save(user);
     }
 
-    public void changePassword(String email, String oldPassword, String newPassword) {
+    public boolean changePassword(String email, String oldPassword, String newPassword) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
-
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
-            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+            return false; // 기존 비밀번호와 oldPassword가 일치하지 않음
         }
-
-        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPassword(passwordEncoder.encode(newPassword)); // 비밀번호 업데이트
         userRepository.save(user);
+        return true; // 비밀번호 변경 성공
+    }
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
     }
 }

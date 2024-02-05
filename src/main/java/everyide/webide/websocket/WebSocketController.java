@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-//@RestController
-//@RequiredArgsConstructor
+@RestController
+@RequiredArgsConstructor
 public class WebSocketController {
 
 //    private final MessageService messageService;
@@ -30,8 +30,15 @@ public class WebSocketController {
 //    public void message(MessageDto messageDto, @DestinationVariable String roomId){
 //        messageService.send(messageDto, roomId);
 //    }
+    private final MessageService messageService;
 
-//    private String getSessionId(SimpMessageHeaderAccessor headerAccessor) {
-//        ConcurrentHashMap<String, String> simpSessionAttributes = (ConcurrentHashMap<String, String>) headerAccessor.get
-//    }
+    @MessageMapping("/message/{roomId}")
+    public void message(MessageDto messageDto, @DestinationVariable String roomId){
+        messageService.send(messageDto, roomId);
+    }
+
+    @MessageMapping("/run/{roomId}")
+    public void run(@DestinationVariable String roomId) {
+
+    }
 }

@@ -6,14 +6,14 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-//@RestController
-//@RequiredArgsConstructor
+@RestController
+@RequiredArgsConstructor
 public class MessageController {
-//
-//    private final MessageService messageService;
-//
-//    @MessageMapping("/message/{chatId}")
-//    public void message(MessageDto messageDto, @DestinationVariable Long chatId){
-//        messageService.send(messageDto, String.valueOf(chatId));
-//    }
+
+    private final MessageService messageService;
+
+    @MessageMapping("/message/{chatId}")
+    public void message(MessageDto messageDto, @DestinationVariable Long chatId){
+        messageService.send(messageDto, chatId);
+    }
 }
