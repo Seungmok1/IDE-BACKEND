@@ -88,22 +88,31 @@ public class AuthController {
             boolean passwordChanged = userService.changePassword(passwordChangeRequest.getEmail(), passwordChangeRequest.getOldPassword(), passwordChangeRequest.getNewPassword());
             if (!passwordChanged) {
                 // 비밀번호 변경 시도 실패 (예: 기존 비밀번호 불일치)
-                response.put("status", true);
+                User user = userService.getUserByEmail(passwordChangeRequest.getEmail());
+                response.put("status", true); // 비밀번호 변경 실패 상태
                 response.put("message", "Current password is incorrect.");
+                // 사용자 정보 포함
+                response.put("email", user.getEmail());
+                response.put("name", user.getName());
                 // 로그인 상태 유지를 위해 BadRequest 응답
                 return ResponseEntity.badRequest().body(response);
             }
             // 비밀번호 변경 성공
-            response.put("status", false);
+            User user = userService.getUserByEmail(passwordChangeRequest.getEmail());
+            response.put("status", false); // 비밀번호 변경 성공 상태
             response.put("message", "Password changed successfully.");
+            // 사용자 정보 포함
+            response.put("email", user.getEmail());
+            response.put("name", user.getName());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             // 예외 처리
-            response.put("status", true);
+            response.put("status", true); // 서버 에러 상태
             response.put("message", e.getMessage());
             // 서버 에러 상황에서도 클라이언트에 적절한 응답을 제공
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
 
 }
