@@ -15,8 +15,6 @@ public class UserService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
-
-
     public void signUpUser(SignRequestDto signRequestDto) {
         User user = User.builder()
                 .name(signRequestDto.getName())
@@ -46,6 +44,5 @@ public class UserService {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
     }
-
 
 }
