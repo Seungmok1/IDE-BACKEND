@@ -29,6 +29,7 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
     @EventListener
     public void connect(SessionConnectEvent event) {
         log.info("입장");
+        System.out.println(event.getMessage().getHeaders());
     }
 
     @EventListener

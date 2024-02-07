@@ -94,7 +94,8 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/token/**"),
                                 new AntPathRequestMatcher("/logout/**")
                         ).permitAll()
-                        .anyRequest().authenticated())
+//                        .anyRequest().authenticated())
+                        .anyRequest().permitAll())
                 .exceptionHandling(configurer -> configurer
                 .accessDeniedHandler(new JwtAccessDeniedHandler())
                 .authenticationEntryPoint(new JwtAuthenticationEntryPoint())

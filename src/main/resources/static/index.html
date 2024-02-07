@@ -25,7 +25,7 @@
     });
 
     function loadChatRooms() {
-        axios.get('/api/loadRooms')
+        axios.get('/api/communities')
             .then(function(response) {
                 const chatRoomList = document.getElementById('chatRoomList');
                 chatRoomList.innerHTML = ''; // 목록 초기화
@@ -44,7 +44,12 @@
     }
 
     function createRoom(name) {
-        axios.post('/api/createRoom', { name: name })
+        axios.post('/api/community', {
+            name: name,
+            isLocked: false,
+            password: "1234",
+            roomType: "QUESTION"
+        })
             .then(function(response) {
                 loadChatRooms(); // 채팅방 목록 다시 로드
             })
