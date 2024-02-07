@@ -42,7 +42,7 @@ public class AuthController {
         return "API End-point for Refresh Token";
     }
 
-    @GetMapping("/user/updatepassword")
+    @GetMapping("/user/info")
     public UserResponse getUserInfo() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName(); // JWT에서 사용자의 이메일 가져오기
@@ -54,7 +54,7 @@ public class AuthController {
         return new UserResponse(user.getName(), user.getEmail());
     }
 
-    @PostMapping("/user/changePassword")
+    @PostMapping("/user/info")
     public ResponseEntity<?> changePassword(@RequestBody PasswordChangeRequest passwordChangeRequest) {
         Map<String, Object> response = new HashMap<>();
         try {
