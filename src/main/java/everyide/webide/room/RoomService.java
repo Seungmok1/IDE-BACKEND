@@ -1,5 +1,7 @@
 package everyide.webide.room;
 
+import everyide.webide.container.ContainerRepository;
+import everyide.webide.container.domain.Container;
 import everyide.webide.room.domain.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,6 +14,7 @@ import java.util.stream.Collectors;
 public class RoomService {
 
     private final RoomRepository roomRepository;
+    private final ContainerRepository containerRepository;
 
     public void create(CreateRoomRequestDto requestDto) {
         Room room = Room.builder()
@@ -20,13 +23,19 @@ public class RoomService {
                 .password(requestDto.getPassword())
                 .type(RoomType.valueOf(requestDto.getRoomType()))
                 .build();
+        Container container = Container.builder()
+                .name(room.getName())
+                .room(room)
+                .build();
+
         roomRepository.save(room);
+        containerRepository.save(container);
     }
 
     public List<RoomResponseDto> loadAllRooms() {
         return roomRepository.findAllBy()
                 .stream()
-                .filter(el -> el.getAvailable())
+                .filter(Room::getAvailable)
                 .map(el -> RoomResponseDto.builder()
                         .roomId(el.getId())
                         .name(el.getName())

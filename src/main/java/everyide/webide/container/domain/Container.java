@@ -7,6 +7,7 @@ import everyide.webide.room.domain.Room;
 import everyide.webide.terminal.domain.Terminal;
 import everyide.webide.user.domain.User;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -36,5 +37,9 @@ public class Container extends BaseEntity {
     @JsonIgnore
     private User owner; // 프로젝트 소유자
 
-
+    @Builder
+    public Container(String name, Room room) {
+        this.name = name;
+        this.room = room;
+    }
 }

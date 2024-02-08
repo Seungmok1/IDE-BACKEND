@@ -1,43 +1,34 @@
-package everyide.webide.websocket;
+package everyide.webide.websocket.terminal;
 
-import everyide.webide.websocket.chat.MessageService;
-import everyide.webide.websocket.chat.domain.MessageDto;
-import everyide.webide.websocket.terminal.TerminalService;
 import everyide.webide.websocket.terminal.domain.TerminalExecuteRequestDto;
-import jakarta.websocket.Session;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.socket.WebSocketSession;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.annotation.SendToUser;
+import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-@RestController
+@Controller
 @RequiredArgsConstructor
-public class WebSocketController {
+public class TerminalController {
 
-    private final MessageService messageService;
-    private final TerminalService terminalService;
-
-    @MessageMapping("/message/{roomId}")
-    public void message(MessageDto messageDto, @DestinationVariable String roomId) {
-        messageService.send(messageDto, roomId);
-    }
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
     @MessageMapping("/room/{roomId}/terminal")
     public void terminal(
             @Payload TerminalExecuteRequestDto requestDto,
-            @DestinationVariable String roomId, Session userSession,
+            @DestinationVariable String roomId,
             SimpMessageHeaderAccessor headerAccessor
-            ) throws Exception {
+    ) throws Exception {
         String sessionId = getSessionId(headerAccessor);
-        terminalService.executeTerminal(requestDto, roomId, sessionId);
-        System.out.println(userSession);
+        simpMessagingTemplate.convertAndSendToUser(sessionId, "/queue/room/" + roomId + "/terminal", requestDto);
     }
 
     private String getSessionId(SimpMessageHeaderAccessor headerAccessor) throws Exception {
