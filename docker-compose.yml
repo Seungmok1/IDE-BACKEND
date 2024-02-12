@@ -47,10 +47,10 @@ services:
     container_name: kafka
     image: confluentinc/cp-kafka:latest
     ports:
-      - "9092:9092"
+      - "3001:3001"
     environment:
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:3000
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:3001
     networks:
       - 8am_net
 
