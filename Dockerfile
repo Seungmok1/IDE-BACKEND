@@ -4,7 +4,7 @@ FROM gradle:7.3.1-jdk17 AS build
 # 작업 디렉토리 설정
 WORKDIR /home/gradle/project
 
-# 소스 코드 복사
+# 소스코드 복사
 COPY --chown=gradle:gradle . .
 
 # gradlew를 이용한 프로젝트 빌드
