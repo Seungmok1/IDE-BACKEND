@@ -14,7 +14,7 @@ services:
     ports:
       - "3306:3306"
     networks:
-      - 8am-net
+      - 8am_net
     healthcheck:
       test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
       timeout: 20s
@@ -27,15 +27,33 @@ services:
     volumes:
       - 8am_images:/app/8am/images
     networks:
-      - 8am-net
+      - 8am_net
     depends_on:
-      8amDB:
-        condition: service_healthy
+      - 8amDB
+      - zookeeper
+      - kafka
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/everyide
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper
+    networks:
+      - 8am_net
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+    networks:
+      - 8am_net
+
 networks:
-  8am-net:
+  8am_net:
     driver: bridge
+
 volumes:
   mysql_volume:
     driver: local
