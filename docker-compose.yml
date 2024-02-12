@@ -1,0 +1,43 @@
+version: "3"
+services:
+  8amDB:
+    container_name: 8amDB
+    image: mysql
+    restart: always
+    volumes:
+      - mysql_volume:/app/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=12345678
+      - MYSQL_DATABASE=everyide
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=12345678
+    ports:
+      - "3306:3306"
+    networks:
+      - 8am-net
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
+  8amServer:
+    container_name: 8amServer
+    ports:
+      - "8000:8000"
+    image: jamiejay/everyide
+    volumes:
+      - 8am_images:/app/8am/images
+    networks:
+      - 8am-net
+    depends_on:
+      8amDB:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://8amDB:3306/everyide
+networks:
+  8am-net:
+    driver: bridge
+volumes:
+  mysql_volume:
+    driver: local
+  8am_images:
+    driver: local
