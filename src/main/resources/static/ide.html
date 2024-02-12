@@ -78,9 +78,9 @@
             type: "post",
             url: "/api/run",
             data: JSON.stringify({
-                "code": editor.getValue(),
-                "programmingLanguage": selectedLanguage,
-                "projectName" : "MyProject1",
+                code : editor.getValue(),
+                programmingLanguage: selectedLanguage,
+                roomId : "a1b2c3",
                 fileName : "Main.java"
             }),
             dataType : "json",

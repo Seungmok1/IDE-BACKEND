@@ -1,9 +1,7 @@
 package everyide.webide.container;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import everyide.webide.container.domain.ContainerRunRequestDto;
+import everyide.webide.container.domain.CodeRequestDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,7 +13,6 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -23,28 +20,26 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CodeService {
 
-    private final String bucket = "everyide-user-code";
-    private final AmazonS3 amazonS3;
+//    private final String bucket = "everyide-user-code";
+//    private final AmazonS3 amazonS3;
 
-    public String saveFile(ContainerRunRequestDto requestDto) throws IOException {
+    public String saveFile(CodeRequestDto requestDto) throws IOException {
         try{
-            String commonPath = System.getProperty("user.dir") + "/src/main/java/everyide/webide/user_code/" + requestDto.getProjectName();
-            File folder = new File(commonPath);
+            String path = System.getProperty("user.dir") + "/src/main/java/everyide/webide/user_code/" + requestDto.getRoomId();
+            File folder = new File(path);
             if(!folder.exists()) folder.mkdir();
 
-            Path path = Files.write(
-                    Path.of(commonPath).resolve(requestDto.getFileName()),
+            return Files.write(
+                    Path.of(path).resolve(requestDto.getFileName()),
                     requestDto.getCode().getBytes(),
                     StandardOpenOption.CREATE
-            );
-
-            return path.toString();
+            ).toString();
         } catch (Exception e) {
             log.error(e.getMessage());
             return "Error in saving file";
         }
 
-//        String s3Path = requestDto.getProjectName() + requestDto.getFileName();
+//        String s3Path = requestDto.getProjectName() + "/" + requestDto.getFileName();
 //        File file = Files.write(
 //                Path.of(System.getProperty("user.dir") + "/src/main/java/everyide/webide/user_code").resolve("temp"),
 //                requestDto.getCode().getBytes(),
@@ -62,9 +57,9 @@ public class CodeService {
 //        return getS3(s3Path);
     }
 
-    private String getS3(String s3Path) {
-        return amazonS3.getUrl(bucket, s3Path).toString();
-    }
+//    private String getS3(String s3Path) {
+//        return amazonS3.getUrl(bucket, s3Path).toString();
+//    }
 
 
     public String runJava(String path) {
