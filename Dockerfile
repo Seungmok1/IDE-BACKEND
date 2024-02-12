@@ -14,9 +14,7 @@ RUN ./gradlew clean build -x test
 FROM openjdk:17
 WORKDIR /app
 COPY --from=build /home/gradle/project/build/libs/web-ide-0.0.1-SNAPSHOT.jar /app/
-
-# DATABASE_URL 환경 변수 설정
-ENV DATABASE_URL=jdbc:mysql://8amDB:3306/everyide
+COPY --from=build /home/gradle/project/src/main/resources/secret.properties /app/
 
 # 빌드 결과 jar 파일을 실행
 CMD ["java", "-jar", "web-ide-0.0.1-SNAPSHOT.jar"]
