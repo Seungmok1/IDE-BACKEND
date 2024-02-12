@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
@@ -15,8 +17,14 @@ public class CodeController {
 
     private final CodeService codeService;
 
+    @PostMapping("/save")
+    public ResponseEntity<?> save(@RequestBody ContainerRunRequestDto requestDto) throws IOException {
+        codeService.saveFile(requestDto);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/run")
-    public ResponseEntity<?> run(@RequestBody ContainerRunRequestDto requestDto) {
+    public ResponseEntity<?> run(@RequestBody ContainerRunRequestDto requestDto) throws IOException {
         String path = codeService.saveFile(requestDto);
         String output = switch (requestDto.getProgrammingLanguage()) {
             case "java" -> codeService.runJava(path);
