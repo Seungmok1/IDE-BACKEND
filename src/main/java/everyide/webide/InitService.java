@@ -11,18 +11,18 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @RequiredArgsConstructor
 public class InitService {
-
-    private final EntityManager em;
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
-
-    public void dbInit() {
-        User user = User.builder()
-                .name("hi")
-                .email("1@1.com")
-                .password(bCryptPasswordEncoder.encode("12345678"))
-                .role("USER")
-                .build();
-
-        em.persist(user);
-    }
+//
+//    private final EntityManager em;
+//    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+//
+//    public void dbInit() {
+//        User user = User.builder()
+//                .name("hi")
+//                .email("1@1.com")
+//                .password(bCryptPasswordEncoder.encode("12345678"))
+//                .role("USER")
+//                .build();
+//
+//        em.persist(user);
+//    }
 }

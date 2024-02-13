@@ -7,7 +7,6 @@ import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import  com.amazonaws.services.kms.model.NotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -70,7 +69,7 @@ public class JwtTokenProvider {
 
     public String generateAccessTokenFromRefreshToken(String refreshToken) {
         Optional<User> optionalUser = userRepository.findAllByRefreshToken(refreshToken);
-        User user = optionalUser.orElseThrow(() -> new NotFoundException("User not exist"));
+        User user = optionalUser.orElseThrow();
 
         return Jwts.builder()
                 .subject(user.getEmail())
