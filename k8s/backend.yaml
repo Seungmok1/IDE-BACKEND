@@ -20,7 +20,7 @@ spec:
             - name: TZ
               value: Asia/Seoul
             - name: DATABASE_URL
-              value: jdbc:mariadb://mariadb:3306/krampoline
+              value: jdbc:mysql://mysql:3306/everyide
           resources:
             requests:
               memory: 1Gi
