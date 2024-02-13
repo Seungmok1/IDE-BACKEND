@@ -1,3 +1,4 @@
 namespace: everyide
 resources:
+  - mysql.yaml
   - backend.yaml
