@@ -1,24 +1,32 @@
-package everyide.webide.fileDirectory.domain;
+package everyide.webide.fileSystem.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import everyide.webide.BaseEntity;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
-@Getter
+@Getter @Setter
 @NoArgsConstructor
-@Table(name = "files")
 public class File extends BaseEntity {
-
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
+
+//    private String name;
     private String path;
+    private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "directory_id")
     @JsonIgnore
     private Directory directory;
+
+    @Builder
+    public File(String path, String content) {
+        this.path = path;
+        this.content = content;
+    }
 }

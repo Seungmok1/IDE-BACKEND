@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Terminal & File Explorer</title>
+    <link rel="stylesheet" href="https://unpkg.com/xterm/css/xterm.css" />
+    <style>
+        body {
+            display: flex;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        #file-explorer {
+            width: 300px;
+            overflow-y: auto;
+            border-right: 1px solid #ccc;
+            padding: 10px;
+        }
+        #terminal-container {
+            flex-grow: 1;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+<div id="file-explorer">
+    <h3>File Explorer</h3>
+    <ul id="file-tree">
+        <li>Folder 1</li>
+        <li>Folder 2
+            <ul>
+                <li>File 1</li>
+                <li>File 2</li>
+            </ul>
+        </li>
+        <li>File 3</li>
+    </ul>
+</div>
+<div id="terminal-container">
+    <h3>Terminal</h3>
+    <div id="terminal"></div>
+</div>
+
+<script src="https://unpkg.com/xterm/lib/xterm.js"></script>
+<script>
+    const terminal = new Terminal();
+    terminal.open(document.getElementById('terminal'));
+    terminal.writeln('Welcome to the web terminal.');
+
+    const socket = new WebSocket('ws://localhost:8000/terminal');
+    let commandBuffer = ''; // 사용자 입력을 저장할 버퍼
+
+    terminal.onKey(e => {
+        const input = e.key;
+        const charCode = e.domEvent.keyCode;
+
+        if (charCode === 13) { // Enter 키의 keyCode는 13
+            terminal.write('\r\n');
+
+            // 사용자 이메일과 명령어를 JSON 객체로 포장
+            const message = JSON.stringify({
+                email: "1@1.com", // 실제 사용자 이메일로 변경
+                command: commandBuffer
+            });
+
+            socket.send(message); // JSON 형태의 메시지 전송
+            commandBuffer = ''; // 버퍼 초기화
+        } else {
+            commandBuffer += input; // 입력된 문자를 버퍼에 추가
+            terminal.write(input);
+        }
+    });
+
+    // 서버로부터의 메시지를 받을 때 터미널에 표시
+    socket.onmessage = function(event) {
+        terminal.writeln(event.data);
+    };
+</script>
+
+
+</body>
+</html>
