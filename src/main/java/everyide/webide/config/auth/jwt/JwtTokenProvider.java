@@ -1,7 +1,5 @@
 package everyide.webide.config.auth.jwt;
 
-
-import com.amazonaws.services.kms.model.NotFoundException;
 import everyide.webide.user.domain.User;
 import everyide.webide.user.UserRepository;
 import io.jsonwebtoken.*;
