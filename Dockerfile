@@ -11,5 +11,7 @@ COPY . .
 RUN echo "systemProp.http.proxyHost=krmp-proxy.9rum.cc\nsystemProp.http.proxyPort=3128\nsystemProp.https.proxyHost=krmp-proxy.9rum.cc\nsystemProp.https.proxyPort=3128" > /root/.gradle/gradle.properties
 RUN ./gradlew clean build -x test
 
+ENV DATABASE_URL=jdbc:mysql://mysql:3306/everyide
+
 # 빌드 결과 jar 파일을 실행
 CMD ["java", "-jar", "web-ide-0.0.1-SNAPSHOT.jar"]
