@@ -1,19 +1,19 @@
 package everyide.webide;
 
-import io.jsonwebtoken.io.IOException;
-import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+// import io.jsonwebtoken.io.IOException;
+// import jakarta.annotation.PostConstruct;
+// import lombok.RequiredArgsConstructor;
+// import org.springframework.stereotype.Component;
 
-@Component
-@RequiredArgsConstructor
+// @Component
+// @RequiredArgsConstructor
 public class InitDb {
 
-    private final InitService initService;
+    // private final InitService initService;
 
-    @PostConstruct
-    public void init() throws IOException {
-        initService.dbInit();
-    }
+    // @PostConstruct
+    // public void init() throws IOException {
+    //     initService.dbInit();
+    // }
 }
 

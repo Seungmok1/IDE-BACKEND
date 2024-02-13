@@ -7,6 +7,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -18,7 +19,9 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ContainerService {
-    private final String basePath = "/home/ec2-user/everyDataBase/";
+
+    @Value("${file.basePath}")
+    private String basePath;
     private final ContainerRepository containerRepository;
     private final UserRepository userRepository;
 
