@@ -54,7 +54,7 @@ public class AuthController {
         return new UserResponse(user.getName(), user.getEmail());
     }
 
-    @PostMapping("/user/info")
+    @PatchMapping("/user/info")
     public ResponseEntity<?> changePassword(@RequestBody PasswordChangeRequest passwordChangeRequest) {
         Map<String, Object> response = new HashMap<>();
         try {
