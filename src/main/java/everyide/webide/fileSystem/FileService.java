@@ -8,6 +8,7 @@ import everyide.webide.user.UserRepository;
 import everyide.webide.user.domain.User;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -17,7 +18,8 @@ import java.util.ArrayList;
 @RequiredArgsConstructor
 public class FileService {
 
-    private final String basePath = "/home/ec2-user/everyDataBase/";
+    @Value("${file.basePath}")
+    private String basePath;
     private final FileRepository fileRepository;
     private final UserRepository userRepository;
 
