@@ -1,19 +1,28 @@
 package everyide.webide.user;
 
 import everyide.webide.config.auth.dto.request.SignRequestDto;
+import everyide.webide.fileSystem.DirectoryService;
+import everyide.webide.fileSystem.domain.Directory;
 import everyide.webide.user.domain.User;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
+    @Value("${file.basePath}")
+    private String basePath;
+
     private final BCryptPasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+    private final DirectoryService directoryService;
 
     public void signUpUser(SignRequestDto signRequestDto) {
         User user = User.builder()
@@ -23,6 +32,15 @@ public class UserService {
                 .role("USER")
                 .build();
         userRepository.save(user);
+
+        Directory rootDirectory = directoryService.createRootDirectory(user.getEmail());
+        if (rootDirectory != null) {
+            user.setRootPath(basePath + user.getEmail());
+            log.info("회원 등록완료");
+        } else {
+            log.info("루트 디렉토리 생성불가");
+        }
+
     }
 
     public boolean changePassword(String email, String oldPassword, String newPassword) {

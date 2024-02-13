@@ -2,44 +2,70 @@ package everyide.webide.container.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import everyide.webide.BaseEntity;
-import everyide.webide.fileDirectory.domain.Directory;
 import everyide.webide.room.domain.Room;
-import everyide.webide.terminal.domain.Terminal;
 import everyide.webide.user.domain.User;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
+import lombok.Setter;
 
 @Entity
-@Getter
+@Getter @Setter
 @NoArgsConstructor
-@Table(name = "containers")
 public class Container extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name; // 프로젝트 이름
-    private String description; // 설명
-    private boolean activeStatus; // 활성상태
 
-    @OneToMany(mappedBy = "container")
-    private List<Directory> directory;
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "terminal_id", referencedColumnName = "id")
-    private Terminal terminal;
+    private String name;
+    private String path;
+    private String description;
+    private boolean active;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
+    private User user;
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     private Room room;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnore
-    private User owner; // 프로젝트 소유자
 
     @Builder
-    public Container(String name, Room room) {
+    public Container(String name, String path, String description, Room room) {
         this.name = name;
+        this.path = path;
+        this.description = description;
+        this.active = true;
         this.room = room;
+    }
+
+    //== 연관관계 메서드 ==//
+    public void setUser(User user) {
+        this.user = user;
+        user.addContainer(this);
+    }
+
+    public void onContainer() {
+        this.active = true;
+    }
+
+    public void offContainer() {
+        this.active = false;
+    }
+
+    public Container updateContainer(String newName, String newPath, String newDescription, boolean active) {
+        this.name = newName;
+        this.path = newPath;
+        this.description = newDescription;
+        this.active = active;
+
+        return this;
+    }
+
+    public Container updateContainer(String newDescription, boolean active) {
+        this.description = newDescription;
+        this.active = active;
+
+        return this;
     }
 }

@@ -32,6 +32,8 @@ public class User extends BaseEntity {
 
     private String role;
 
+    private String rootPath;
+
     @Setter
     private String refreshToken;
 
@@ -40,7 +42,7 @@ public class User extends BaseEntity {
 
     private String providerId;
 
-    @OneToMany
+    @OneToMany(mappedBy = "user")
     private List<Container> containers = new ArrayList<>();;
 
     @Builder
@@ -74,5 +76,15 @@ public class User extends BaseEntity {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public void setRootPath(String path) {
+        this.rootPath = path;
+    }
+
+
+    //== 연관관계 메서드 ==//
+    public void addContainer(Container container) {
+        this.containers.add(container);
     }
 }
