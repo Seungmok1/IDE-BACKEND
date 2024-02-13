@@ -6,6 +6,7 @@ import everyide.webide.fileSystem.domain.Directory;
 import everyide.webide.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,9 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class UserService {
+
+    @Value("${file.basePath}")
+    private String basePath;
 
     private final BCryptPasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
@@ -31,7 +35,7 @@ public class UserService {
 
         Directory rootDirectory = directoryService.createRootDirectory(user.getEmail());
         if (rootDirectory != null) {
-            user.setRootPath("/home/ec2-user/everyDataBase/" + user.getEmail());
+            user.setRootPath(basePath + user.getEmail());
             log.info("회원 등록완료");
         } else {
             log.info("루트 디렉토리 생성불가");

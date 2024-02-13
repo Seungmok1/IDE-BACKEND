@@ -9,6 +9,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -19,8 +20,8 @@ import java.io.IOException;
 @Slf4j
 public class DirectoryService {
 
-    private final String basePath = "/home/ec2-user/everyDataBase/";
-
+    @Value("${file.basePath}")
+    private String basePath;
     private final DirectoryRepository directoryRepository;
     private final UserRepository userRepository;
 
