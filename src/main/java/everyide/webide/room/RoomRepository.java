@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface RoomRepository extends JpaRepository<Room, String> {
     List<Room> findAllBy();
+    List<Room> findAllByAvailableTrue();
 }
