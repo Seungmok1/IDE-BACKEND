@@ -45,11 +45,18 @@ public class FileService {
     }
 
     private FileTreeResponse listFilesAndDirectoriesRecursive(File directory) {
-        FileTreeResponse fileInfo = new FileTreeResponse(directory.getName(), directory.isDirectory(), new ArrayList<>());
+        String type = directory.isDirectory() ? "directory" : "file";
+
+        FileTreeResponse fileInfo = new FileTreeResponse(directory.getName(), type, new ArrayList<>());
 
         File[] files = directory.listFiles();
         if (files != null) {
             for (File file : files) {
+
+                if (".DS_Store".equals(file.getName())) {
+                    continue;
+                }
+
                 FileTreeResponse child = listFilesAndDirectoriesRecursive(file);
                 fileInfo.getChildren().add(child);
             }

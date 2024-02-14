@@ -9,14 +9,16 @@ import java.time.LocalDateTime;
 public class ContainerDetailResponse {
     private String name;
     private String description;
+    private String language;
     private boolean active;
     private LocalDateTime createDate;
     private LocalDateTime lastModifiedDate;
 
     @Builder
-    public ContainerDetailResponse(String name, String description, boolean active, LocalDateTime createDate, LocalDateTime lastModifiedDate) {
+    public ContainerDetailResponse(String name, String description, String language, boolean active, LocalDateTime createDate, LocalDateTime lastModifiedDate) {
         this.name = name;
         this.description = description;
+        this.language = language;
         this.active = active;
         this.createDate = createDate;
         this.lastModifiedDate = lastModifiedDate;

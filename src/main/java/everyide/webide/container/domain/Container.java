@@ -21,6 +21,7 @@ public class Container extends BaseEntity {
     private String name;
     private String path;
     private String description;
+    private String language;
     private boolean active;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -31,10 +32,11 @@ public class Container extends BaseEntity {
     private Room room;
 
     @Builder
-    public Container(String name, String path, String description, Room room) {
+    public Container(String name, String path, String description, String language, Room room) {
         this.name = name;
         this.path = path;
         this.description = description;
+        this.language = language;
         this.active = true;
         this.room = room;
     }
