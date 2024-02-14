@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="shortcut icon" href="#">
+    <meta charset="UTF-8">
+    <title>Insert title here</title>
+    <style>
+        #editor {
+            height: 800px !important;
+            font-size: 15px;
+        }
+
+        #desc {
+            height: 800px;
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body><div style="margin-bottom: 10px;">
+    <select id="languageSelect">
+        <option value="java">Java</option>
+        <option value="python">Python</option>
+        <option value="javascript">JavaScript</option>
+        <!-- 필요한 만큼 언어를 추가하세요 -->
+    </select>
+</div>
+<div style="display:flex;">
+    <div style="flex:0 0 70%;">
+        <div id="editor"></div>
+        <button onclick="send_compiler();" style="width: 200px; height: 100px; vertical-align:top;">Run</button>
+        <div>출력</div>
+        <div id="output" style="flex:1 1 auto;">실행 결과가 여기에 표시됩니다.</div>
+        <div>경과시간: <span id="performance"></span> m/s</div>
+    </div>
+    <div style="flex:0 0 30%;">
+
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.3/ace.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+    var editor = ace.edit("editor");
+    $(function() {
+        editor.setTheme("ace/theme/pastel_on_dark");
+        editor.getSession().setMode("ace/mode/java");
+        editor.setOptions({ maxLines: 1000 });
+
+        $.ajax({
+            url: "/static/source/source_return_byte_array",
+            success: function(data) {
+                editor.setValue(data, data.length);
+            },
+            error: function(err) {
+                console.log(err);
+            }
+        })
+    })
+    $("#languageSelect").change(function() {
+        var selectedLanguage = $(this).val();
+        switch(selectedLanguage) {
+            case "java":
+                editor.getSession().setMode("ace/mode/java");
+                break;
+            case "python":
+                editor.getSession().setMode("ace/mode/python");
+                break;
+            case "javascript":
+                editor.getSession().setMode("ace/mode/javascript");
+                break;
+            // 필요에 따라 더 많은 케이스를 추가하세요.
+        }
+    });
+
+    function send_compiler() {
+        var selectedLanguage = $("#languageSelect").val();
+        $.ajax({
+            type: "post",
+            url: "/api/run",
+            data: JSON.stringify({
+                code : editor.getValue(),
+                programmingLanguage: selectedLanguage,
+                roomId : "a1b2c3",
+                fileName : "Main.java"
+            }),
+            dataType : "json",
+            contentType: 'application/json',
+            success: function(data) {
+                if(data.result === "성공") {
+                    $("#output").css("color", "#000");
+                }else {
+                    $("#output").css("color", "#f00");
+                }
+
+                $("#output").html(data.responseText != null ? data.responseText.replace(/\n/g, "<br>") : "");
+                $("#performance").text(data.performance);
+            },
+            error: function(data) {
+                console.log(data)
+                $("#output").html(data.responseText != null ? data.responseText.replace(/\n/g, "<br>") : "");
+
+            }
+        })
+    }
+</script>
+</body>
+</html>
