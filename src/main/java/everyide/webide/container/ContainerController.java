@@ -23,7 +23,6 @@ public class ContainerController {
 
     @GetMapping("api/{userId}/containers")
     public ResponseEntity<List<ContainerDetailResponse>> getContainers(@PathVariable("userId") Long userId) {
-        log.info("여기다");
         return ResponseEntity.ok(containerService.getContainer(userId));
     }
 
@@ -36,13 +35,13 @@ public class ContainerController {
     @PatchMapping("api/containers")
     public ResponseEntity<?> updateContainers(@RequestBody UpdateContainerRequest updateContainerRequest) {
         containerService.updateContainer(updateContainerRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body("컨테이너 수정완료.");
+        return ResponseEntity.status(HttpStatus.OK).body("컨테이너 수정완료.");
     }
 
     @DeleteMapping("api/containers")
     public ResponseEntity<?> deleteContainers(@RequestBody DeleteContainerRequest deleteContainerRequest) {
         containerService.deleteContainer(deleteContainerRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body("컨테이너 삭제완료.");
+        return ResponseEntity.status(HttpStatus.OK).body("컨테이너 삭제완료.");
     }
 
 }
