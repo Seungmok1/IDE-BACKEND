@@ -28,7 +28,7 @@ public class FileService {
     private final UserRepository userRepository;
 
     public void createFile(CreateFileRequest createFileRequest) {
-        String path = basePath + createFileRequest.getEmail() + "/" + createFileRequest.getPath();
+        String path = basePath + createFileRequest.getEmail() + createFileRequest.getPath();
         File file = new File(path);
 
         try {
@@ -70,7 +70,7 @@ public class FileService {
             if (oldFile.renameTo(newFile)) {
 
                 everyide.webide.fileSystem.domain.File findFile = fileRepository.findByPath(oldPath)
-                        .orElseThrow();
+                        .orElseThrow(() -> new EntityNotFoundException("File not found."));
                 fileRepository.save(findFile.updateFile(newPath));
 
                 log.info(oldPath + " 파일이 " + newPath + "로 이름이 변경되었습니다.");
@@ -82,7 +82,7 @@ public class FileService {
 
 
     public void deleteFile(DeleteFileRequest deleteFileRequest) {
-        String path = basePath + deleteFileRequest.getEmail() + "/" + deleteFileRequest.getPath();
+        String path = basePath + deleteFileRequest.getEmail() + deleteFileRequest.getPath();
         File file = new File(path);
 
         if (file.delete()) {
