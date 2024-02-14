@@ -14,4 +14,4 @@ RUN ./gradlew clean build -x test
 ENV DATABASE_URL=jdbc:mysql://mysql:3306/everyide
 
 # 빌드 결과 jar 파일을 실행
-CMD ["java", "-jar", "web-ide-0.0.1-SNAPSHOT.jar"]
+CMD ["java", "-jar", "/home/gradle/project/build/libs/web-ide-0.0.1-SNAPSHOT.jar"]
