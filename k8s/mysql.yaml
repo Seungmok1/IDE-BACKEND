@@ -21,7 +21,7 @@ spec:
             - name: TZ
               value: Asia/Seoul
             - name: MYSQL_ROOT_PASSWORD
-              value: 0102
+              value: "0102"
             - name: MYSQL_DATABASE
               value: everyide
             - name: MYSQL_DISABLE_UPGRADE_BACKUP
