@@ -8,4 +8,5 @@ public class CreateRoomRequestDto {
     private Boolean isLocked;
     private String password;
     private String roomType;
+    private Integer maxPeople;
 }
