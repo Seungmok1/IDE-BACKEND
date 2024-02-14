@@ -29,4 +29,10 @@ public class File extends BaseEntity {
         this.path = path;
         this.content = content;
     }
+
+    public File updateFile(String path) {
+        this.path = path;
+
+        return this;
+    }
 }
