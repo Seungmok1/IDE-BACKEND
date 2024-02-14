@@ -10,13 +10,13 @@ import java.util.List;
 @NoArgsConstructor
 public class FileTreeResponse {
     private String name;
-    private boolean isDirectory;
+    private String type;
     private List<FileTreeResponse> children;
 
     @Builder
-    public FileTreeResponse(String name, boolean isDirectory, List<FileTreeResponse> children) {
+    public FileTreeResponse(String name, String type, List<FileTreeResponse> children) {
         this.name = name;
-        this.isDirectory = isDirectory;
+        this.type = type;
         this.children = children;
     }
 }

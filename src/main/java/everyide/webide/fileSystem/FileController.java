@@ -13,7 +13,7 @@ public class FileController {
     private final FileService fileService;
 
     @GetMapping("/api/{userId}/filetree/{containerName}")
-    public FileTreeResponse getFileTree(@PathVariable Long userId, @PathVariable String containerName) {
+    public FileTreeResponse getFileTree(@PathVariable("userId") Long userId, @PathVariable("containerName") String containerName) {
         return fileService.listFilesAndDirectories(userId, containerName);
     }
 }
