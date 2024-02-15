@@ -24,6 +24,11 @@ public class RoomService {
     private final UserRepository userRepository;
 
     public Room create(CreateRoomRequestDto requestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName(); // JWT에서 사용자의 이메일 가져오기
+        Optional<User> byEmail = userRepository.findByEmail(email);
+        User user = byEmail.orElseThrow();
+
         Room room = Room.builder()
                 .name(requestDto.getName())
                 .isLocked(requestDto.getIsLocked())
@@ -36,6 +41,8 @@ public class RoomService {
                 .name(room.getName())
                 .room(room)
                 .build();
+
+        room.getUsersId().add(user.getId());
 
         roomRepository.save(room);
         containerRepository.save(container);

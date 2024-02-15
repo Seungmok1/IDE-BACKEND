@@ -25,6 +25,10 @@ public class UserService {
     private final DirectoryService directoryService;
 
     public void signUpUser(SignRequestDto signRequestDto) {
+        if (userRepository.findByEmail(signRequestDto.getEmail()).isPresent()) {
+            throw new RuntimeException("이미 사용 중인 이메일입니다.");
+        }
+
         User user = User.builder()
                 .name(signRequestDto.getName())
                 .email(signRequestDto.getEmail())
