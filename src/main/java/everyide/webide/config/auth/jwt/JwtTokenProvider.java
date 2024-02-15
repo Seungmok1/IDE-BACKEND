@@ -1,6 +1,5 @@
 package everyide.webide.config.auth.jwt;
 
-
 import everyide.webide.user.domain.User;
 import everyide.webide.user.UserRepository;
 import io.jsonwebtoken.*;
