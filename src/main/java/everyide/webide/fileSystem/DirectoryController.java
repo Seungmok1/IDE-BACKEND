@@ -4,6 +4,8 @@ import everyide.webide.fileSystem.domain.dto.CreateDirectoryRequest;
 import everyide.webide.fileSystem.domain.dto.DeleteDirectoryRequest;
 import everyide.webide.fileSystem.domain.dto.UpdateDirectoryRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,17 +20,20 @@ public class DirectoryController {
     }
 
     @PostMapping("api/directories")
-    public void createDirectory(@RequestBody CreateDirectoryRequest createDirectoryRequest) {
+    public ResponseEntity<?> createDirectory(@RequestBody CreateDirectoryRequest createDirectoryRequest) {
         directoryService.createDirectory(createDirectoryRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body("디렉토리 생성완료.");
     }
 
     @PatchMapping("api/directories")
-    public void updateDirectory(@RequestBody UpdateDirectoryRequest updateDirectoryRequest) {
+    public ResponseEntity<?> updateDirectory(@RequestBody UpdateDirectoryRequest updateDirectoryRequest) {
         directoryService.updateDirectory(updateDirectoryRequest);
+        return ResponseEntity.status(HttpStatus.OK).body("디렉토리 수정완료.");
     }
 
     @DeleteMapping("api/directories")
-    public void deleteDirectory(@RequestBody DeleteDirectoryRequest deleteDirectoryRequest) {
+    public ResponseEntity<?> deleteDirectory(@RequestBody DeleteDirectoryRequest deleteDirectoryRequest) {
         directoryService.deleteDirectory(deleteDirectoryRequest);
+        return ResponseEntity.status(HttpStatus.OK).body("디렉토리 삭제완료.");
     }
 }

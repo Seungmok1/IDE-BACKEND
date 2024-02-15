@@ -1,6 +1,5 @@
 package everyide.webide.container;
 
-import com.amazonaws.services.s3.AmazonS3;
 import everyide.webide.container.domain.CodeRequestDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,9 +19,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CodeService {
 
-//    private final String bucket = "everyide-user-code";
-//    private final AmazonS3 amazonS3;
-
     public String saveFile(CodeRequestDto requestDto) throws IOException {
         try{
             String path = System.getProperty("user.dir") + "/src/main/java/everyide/webide/user_code/" + requestDto.getRoomId();
@@ -38,28 +34,8 @@ public class CodeService {
             log.error(e.getMessage());
             return "Error in saving file";
         }
-
-//        String s3Path = requestDto.getProjectName() + "/" + requestDto.getFileName();
-//        File file = Files.write(
-//                Path.of(System.getProperty("user.dir") + "/src/main/java/everyide/webide/user_code").resolve("temp"),
-//                requestDto.getCode().getBytes(),
-//                StandardOpenOption.CREATE
-//        ).toFile();
-//
-//        try {
-//            amazonS3.putObject(new PutObjectRequest(bucket, s3Path, file)
-//                    .withCannedAcl(CannedAccessControlList.PublicRead));
-//        } catch (Exception e) {
-//            log.error(e.getMessage());
-//        } finally {
-//            file.delete();
-//        }
-//        return getS3(s3Path);
     }
 
-//    private String getS3(String s3Path) {
-//        return amazonS3.getUrl(bucket, s3Path).toString();
-//    }
 
 
     public String runJava(String path) {

@@ -33,6 +33,7 @@ public class ContainerService {
                 .map(container -> ContainerDetailResponse.builder()
                         .name(container.getName())
                         .description(container.getDescription())
+                        .language(container.getLanguage())
                         .active(container.isActive())
                         .createDate(container.getCreateDate())
                         .lastModifiedDate(container.getLastModifiedDate())
@@ -57,6 +58,7 @@ public class ContainerService {
                         .name(createContainerRequest.getName())
                         .description(createContainerRequest.getDescription())
                         .path(path)
+                        .language(createContainerRequest.getLanguage())
                         .build();
 
                 newContainer.setUser(findUser);

@@ -3,12 +3,8 @@ package everyide.webide.config.auth.api;
 import everyide.webide.config.auth.dto.request.PasswordChangeRequest;
 import everyide.webide.config.auth.dto.request.SignRequestDto;
 import everyide.webide.config.auth.dto.request.UserResponse;
-import everyide.webide.config.auth.jwt.JwtTokenProvider;
 import everyide.webide.user.UserService;
 import everyide.webide.user.domain.User;
-import io.jsonwebtoken.Claims;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -51,7 +47,7 @@ public class AuthController {
         User user = userService.findByEmail(email);
 
         // 필요한 정보만 UserResponse 객체에 담아 반환
-        return new UserResponse(user.getName(), user.getEmail());
+        return new UserResponse(user.getId(), user.getName(), user.getEmail());
     }
 
     @PatchMapping("/user/info")
