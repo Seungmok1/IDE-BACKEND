@@ -1,6 +1,7 @@
 package everyide.webide.user;
 
 import everyide.webide.config.auth.dto.request.SignRequestDto;
+import everyide.webide.config.auth.exception.EmailAlreadyUsedException;
 import everyide.webide.fileSystem.DirectoryService;
 import everyide.webide.fileSystem.domain.Directory;
 import everyide.webide.user.domain.User;
@@ -26,7 +27,7 @@ public class UserService {
 
     public void signUpUser(SignRequestDto signRequestDto) {
         if (userRepository.findByEmail(signRequestDto.getEmail()).isPresent()) {
-            throw new RuntimeException("이미 사용 중인 이메일입니다.");
+            throw new EmailAlreadyUsedException("이미 사용 중인 이메일입니다.");
         }
 
         User user = User.builder()
