@@ -28,7 +28,7 @@ spec:
             - mountPath: /everyDataBase
               name: everydatabase
       volumes:
-        - name: helloworld
+        - name: everydatabase
           persistentVolumeClaim:
             claimName: everydatabase
 ---
