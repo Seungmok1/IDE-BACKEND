@@ -26,11 +26,11 @@ spec:
               memory: 1Gi
           volumeMounts:
             - mountPath: /everyDataBase
-              name: everyDataBase
+              name: everydatabase
       volumes:
         - name: helloworld
           persistentVolumeClaim:
-            claimName: everyDataBase
+            claimName: everydatabase
 ---
 apiVersion: v1
 kind: Service
