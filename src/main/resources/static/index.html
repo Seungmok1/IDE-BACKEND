@@ -57,10 +57,29 @@
                 console.error('Error creating room:', error);
             });
     }
+    function loadUsers() {
+        axios.get('/api/users')
+            .then(function(response) {
+                const users = response.data;
+                const usersList = document.createElement('ul'); // 사용자 목록을 표시할 리스트 생성
+                users.forEach(function(user) {
+                    const userItem = document.createElement('li');
+                    userItem.textContent = `Name: ${user.name}, Email: ${user.email}`;
+                    usersList.appendChild(userItem);
+                });
+                document.body.appendChild(usersList); // 문서에 사용자 목록 추가
+            })
+            .catch(function(error) {
+                console.log('Error loading users:', error);
+            });
+    }
 
-    // 페이지 로드 시 채팅방 목록 로드
+
+
+    // 페이지 로드 시 채팅방, 사용자 목록 로드
     window.onload = function() {
         loadChatRooms();
+        loadUsers();
     };
 </script>
 </body>

@@ -13,7 +13,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @RestController
@@ -82,6 +84,19 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
+    @GetMapping("/api/users")
+    public ResponseEntity<List<UserResponse>> getAllUsers() {
+        List<User> users = userService.findAllUsers();
+
+        // 사용자 비밀번호를 제외한 정보를 UserResponse 리스트로 변환
+        List<UserResponse> userResponses = users.stream()
+                .map(user -> new UserResponse(user.getId(), user.getName(), user.getEmail()))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(userResponses);
+    }
+
 
 
 }
