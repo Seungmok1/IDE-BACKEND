@@ -1,10 +1,7 @@
 package everyide.webide;
 
  import everyide.webide.config.auth.dto.request.SignRequestDto;
-<<<<<<< HEAD
  import everyide.webide.container.domain.Container;
-=======
->>>>>>> c648337
  import everyide.webide.room.domain.Room;
  import everyide.webide.user.UserService;
  import everyide.webide.user.domain.User;
@@ -39,20 +36,14 @@ public class InitService {
                  .name("123")
                  .build();
 
-<<<<<<< HEAD
          Container container = Container.builder()
                  .name("123")
-
                  .build();
 
 
          em.persist(user);
          em.persist(room);
          em.persist(container);
-=======
 
-         em.persist(user);
-         em.persist(room);
->>>>>>> c648337
      }
 }
