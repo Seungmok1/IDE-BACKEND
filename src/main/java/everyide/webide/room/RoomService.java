@@ -11,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -35,6 +36,7 @@ public class RoomService {
                 .password(requestDto.getPassword())
                 .type(RoomType.valueOf(requestDto.getRoomType()))
                 .maxPeople(requestDto.getMaxPeople()) // 최대 입장 허용 인원을 프론트에서 막을지.. 백에서도 막아야되는지..?
+                .usersId(new ArrayList<>())
                 .personCnt(1)
                 .build();
         Container container = Container.builder()
