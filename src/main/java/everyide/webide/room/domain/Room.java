@@ -32,7 +32,7 @@ public class Room extends BaseEntity {
     private List<Long> usersId;
 
     @Builder
-    public Room(Boolean isLocked, String name, String password, RoomType type, Boolean available, Integer personCnt, Integer maxPeople) {
+    public Room(Boolean isLocked, String name, String password, RoomType type, Boolean available, Integer personCnt, Integer maxPeople, List<Long> usersId) {
         id = UUID.randomUUID().toString();
         this.name = name;
         this.password = password;
@@ -40,6 +40,7 @@ public class Room extends BaseEntity {
         this.type = type;
         this.personCnt = personCnt;
         this.maxPeople = maxPeople;
+        this.usersId = usersId;
         // 사용자가 available 값을 명시적으로 설정한 경우 해당 값을 사용
         if (available != null) {
             this.available = available;
