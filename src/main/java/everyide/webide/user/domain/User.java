@@ -87,4 +87,9 @@ public class User extends BaseEntity {
     public void addContainer(Container container) {
         this.containers.add(container);
     }
+
+    public void removeContainer(Container container) {
+        this.containers.remove(container);
+    }
+
 }

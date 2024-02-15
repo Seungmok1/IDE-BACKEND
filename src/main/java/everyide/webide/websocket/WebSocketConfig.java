@@ -10,11 +10,10 @@ import org.springframework.web.socket.config.annotation.*;
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSocketMessageBroker
-public class WebSocketConfig implements WebSocketMessageBrokerConfigurer, WebSocketConfigurer {
+public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final WebSocketChannelInterceptor interceptor;
     private final CustomHandshakeHandler handshakeHandler;
-    private final CommandService commandService;
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -22,6 +21,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer, WebSoc
                 .setAllowedOriginPatterns("*")
                 .setHandshakeHandler(handshakeHandler)
                 .withSockJS();
+        registry.addEndpoint("/ws").setAllowedOriginPatterns("*");
     }
 
     @Override
@@ -31,12 +31,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer, WebSoc
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
+        registry.enableSimpleBroker("/topic");
         registry.setApplicationDestinationPrefixes("/app", "/queue");
         registry.setUserDestinationPrefix("/user");
-    }
-
-    @Override
-    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new TerminalWebSocketHandler(commandService), "/terminal").setAllowedOrigins("*");
     }
 }

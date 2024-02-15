@@ -86,6 +86,7 @@ public class ContainerService {
                 FileUtils.deleteDirectory(container);
 
                 // 데이터베이스에서도 해당 컨테이너 정보 삭제
+                findContainer.getUser().removeContainer(findContainer);
                 containerRepository.delete(findContainer);
 
                 return path + " 삭제완료.";
@@ -110,7 +111,7 @@ public class ContainerService {
         File oldContainer = new File(oldPath);
         File newContainer = new File(newPath);
 
-        if (oldContainer.exists()) {
+        if (oldContainer.exists() && !newContainer.exists()) {
 
             Container container = containerRepository.findByPath(oldPath)
                     .orElseThrow(() -> new EntityNotFoundException("Container not found."));
