@@ -54,9 +54,8 @@ public class TerminalService {
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         String line;
         while ((line = reader.readLine()) != null) {
-            template.convertAndSendToUser(sessionId, "/topic/terminal-output/" + containerId, line);
-//            template.convertAndSend("/topic/terminal-output/" + containerId, line);
-
+//            template.convertAndSendToUser(sessionId, "/topic/terminal-output/" + containerId, line);
+            template.convertAndSend("/topic/terminal-output/" + containerId, line);
         }
         log.info(" 여기 3 !!");
         int exitCode = process.waitFor();
