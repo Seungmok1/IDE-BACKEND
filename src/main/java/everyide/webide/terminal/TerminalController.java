@@ -3,11 +3,12 @@ package everyide.webide.terminal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
 
-import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Controller
@@ -16,11 +17,17 @@ public class TerminalController {
 
     private final TerminalService terminalService;
 
-    @MessageMapping("/execute-command/{containerId}")
-    public void handleCommandExecution(@DestinationVariable Long containerId, String command, @Header("simpSessionId") String sessionId) throws IOException, InterruptedException {
-        log.info(" 여기 11 !!");
-        terminalService.executeCommand(containerId, command, sessionId);
-        log.info(" 여기 22 !!");
-    }
+    @MessageMapping("/container/{containerId}/terminal")
+    @SendToUser("/queue/container/{containerId}/terminal")
+    public String execute(
+            @DestinationVariable Long containerId,
+            String command,
+            SimpMessageHeaderAccessor headerAccessor
+    ) throws Exception {
+        log.info("웹소켓 터미널 실행, containerId={}, command={}", containerId, command);
 
+        String sessionId = headerAccessor.getUser().getName();
+
+        return terminalService.executeCommand(containerId, command, sessionId);
+    }
 }

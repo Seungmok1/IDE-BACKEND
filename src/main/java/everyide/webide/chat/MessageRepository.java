@@ -1,6 +1,6 @@
-package everyide.webide.websocket.chat;
+package everyide.webide.chat;
 
-import everyide.webide.websocket.chat.domain.Message;
+import everyide.webide.chat.domain.Message;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

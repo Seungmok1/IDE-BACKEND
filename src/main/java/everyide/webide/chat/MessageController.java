@@ -1,7 +1,7 @@
-package everyide.webide.websocket.chat;
+package everyide.webide.chat;
 
-import everyide.webide.websocket.chat.domain.Message;
-import everyide.webide.websocket.chat.domain.MessageDto;
+import everyide.webide.chat.domain.Message;
+import everyide.webide.chat.domain.MessageDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;

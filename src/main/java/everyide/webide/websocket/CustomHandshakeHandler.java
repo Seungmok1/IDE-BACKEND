@@ -14,7 +14,6 @@ public class CustomHandshakeHandler extends DefaultHandshakeHandler {
     @Override
     protected Principal determineUser(ServerHttpRequest request, WebSocketHandler wsHandler, Map<String, Object> attributes) {
         String sessionId = UUID.randomUUID().toString();
-        attributes.put("SessionId", sessionId);
         return new Principal() {
             @Override
             public String getName() {

@@ -59,15 +59,22 @@ public class Container extends BaseEntity {
         this.name = newName;
         this.path = newPath;
         this.description = newDescription;
-        this.active = active;
+        if (active) {
+            onContainer();
+        } else {
+            offContainer();
+        }
 
         return this;
     }
 
     public Container updateContainer(String newDescription, boolean active) {
         this.description = newDescription;
-        this.active = active;
-
+        if (active) {
+            onContainer();
+        } else {
+            offContainer();
+        }
         return this;
     }
 }

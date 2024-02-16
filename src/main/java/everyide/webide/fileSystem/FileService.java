@@ -1,9 +1,9 @@
 package everyide.webide.fileSystem;
 
-import everyide.webide.fileSystem.domain.dto.CreateFileRequest;
-import everyide.webide.fileSystem.domain.dto.DeleteFileRequest;
-import everyide.webide.fileSystem.domain.dto.FileTreeResponse;
-import everyide.webide.fileSystem.domain.dto.UpdateFileRequest;
+import everyide.webide.container.ContainerRepository;
+import everyide.webide.container.ContainerService;
+import everyide.webide.container.domain.Container;
+import everyide.webide.fileSystem.domain.dto.*;
 import everyide.webide.user.UserRepository;
 import everyide.webide.user.domain.User;
 import jakarta.persistence.EntityNotFoundException;
@@ -15,7 +15,11 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -26,6 +30,30 @@ public class FileService {
     private String basePath;
     private final FileRepository fileRepository;
     private final UserRepository userRepository;
+    private final ContainerRepository containerRepository;
+
+    public GetFileResponse getFile(Long containerId, String path) {
+        Optional<Container> containerOptional = containerRepository.findById(containerId);
+
+        if (containerOptional.isPresent()) {
+            Container container = containerOptional.get();
+            String filePath = container.getPath() + path;
+
+            if (!Files.exists(Paths.get(filePath))) {
+                return null;
+            }
+
+            try {
+                String content = new String(Files.readAllBytes(Paths.get(filePath)));
+                return new GetFileResponse(content);
+            } catch (IOException e) {
+                // IOException 처리
+                e.printStackTrace();
+                return null;
+            }
+        }
+        return null;
+    }
 
     public void createFile(CreateFileRequest createFileRequest) {
         String path = basePath + createFileRequest.getEmail() + createFileRequest.getPath();
@@ -96,6 +124,86 @@ public class FileService {
         }
     }
 
+    public void createDefaultFile(String path, String language) {
+        String fileName = null;
+        String defaultContent = null;
+
+        if (language.equals("java")) {
+            fileName = "Main.java";
+            defaultContent = "public class Main {\n    public static void main(String[] args) {\n        System.out.println(\"Hello, World!\");\n    }\n}";
+
+        } else if (language.equals("javascript")) {
+            fileName = "main.js";
+            defaultContent = "console.log('Hello, World!');";
+        } else {
+            fileName = "main.py";
+            defaultContent = "print('Hello, World!')";
+        }
+
+        File file = new File(path, fileName);
+        try (FileWriter writer = new FileWriter(file)) {
+            writer.write(defaultContent);
+            writer.flush();
+
+            everyide.webide.fileSystem.domain.File defaultFile = everyide.webide.fileSystem.domain.File.builder()
+                    .path(path + fileName)
+                    .build();
+            fileRepository.save(defaultFile);
+
+        } catch (IOException e) {
+            e.printStackTrace(); // 파일 생성 실패시 로그에 스택 트레이스 출력
+        }
+
+        File readme = new File(path, "README.md");
+        try (FileWriter writer = new FileWriter(readme)) {
+            writer.write("# 컨테이너 이름\n" +
+                    "\n" +
+                    "## 개요\n" +
+                    "\n" +
+                    "이 컨테이너는 [간단한 설명]을 위해 만들어졌습니다. 여기에는 [기술 스택, 사용된 도구, 목적 등]에 대한 정보가 포함되어야 합니다.\n" +
+                    "\n" +
+                    "## 시작하기\n" +
+                    "\n" +
+                    "이 섹션에서는 컨테이너를 사용하기 위한 사전 요구 사항과 시작 방법을 설명합니다.\n" +
+                    "\n" +
+                    "### 사전 요구 사항\n" +
+                    "\n" +
+                    "컨테이너를 사용하기 위해 필요한 도구, 라이브러리, 환경 설정 등을 나열합니다.");
+            writer.flush();
+
+            everyide.webide.fileSystem.domain.File readmeFile = everyide.webide.fileSystem.domain.File.builder()
+                    .path(path + "README.md")
+                    .build();
+            fileRepository.save(readmeFile);
+
+        } catch (IOException e) {
+            e.printStackTrace(); // 파일 생성 실패시 로그에 스택 트레이스 출력
+        }
+
+    }
+
+    public String extractPathAfterEmail(String fullPath) {
+        String[] parts = fullPath.split("/");
+
+        int emailIndex = -1;
+        for (int i = 0; i < parts.length; i++) {
+            if (parts[i].contains("@")) {
+                emailIndex = i;
+                break;
+            }
+        }
+
+        if (emailIndex != -1 && emailIndex + 1 < parts.length) {
+            StringBuilder sb = new StringBuilder();
+            for (int i = emailIndex + 2; i < parts.length; i++) {
+                sb.append("/");
+                sb.append(parts[i]);
+            }
+            return sb.toString();
+        }
+
+        return "";
+    }
 
     public FileTreeResponse listFilesAndDirectories(Long userId, String containerName) {
 
@@ -109,8 +217,9 @@ public class FileService {
 
     private FileTreeResponse listFilesAndDirectoriesRecursive(File directory) {
         String type = directory.isDirectory() ? "directory" : "file";
+        String path = extractPathAfterEmail(directory.getPath()).isEmpty() ? "/" : extractPathAfterEmail(directory.getPath());
 
-        FileTreeResponse fileInfo = new FileTreeResponse(directory.getName(), type, new ArrayList<>());
+        FileTreeResponse fileInfo = new FileTreeResponse(UUID.randomUUID(), directory.getName(), type, path, new ArrayList<>());
 
         File[] files = directory.listFiles();
         if (files != null) {

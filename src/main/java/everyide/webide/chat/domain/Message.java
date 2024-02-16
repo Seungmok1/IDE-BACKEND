@@ -1,4 +1,4 @@
-package everyide.webide.websocket.chat.domain;
+package everyide.webide.chat.domain;
 
 import lombok.*;
 import org.springframework.data.mongodb.core.mapping.Document;
