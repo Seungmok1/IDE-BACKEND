@@ -11,12 +11,14 @@ import java.util.List;
 public class FileTreeResponse {
     private String name;
     private String type;
+    private String path;
     private List<FileTreeResponse> children;
 
     @Builder
-    public FileTreeResponse(String name, String type, List<FileTreeResponse> children) {
+    public FileTreeResponse(String name, String type, String path, List<FileTreeResponse> children) {
         this.name = name;
         this.type = type;
+        this.path = path;
         this.children = children;
     }
 }

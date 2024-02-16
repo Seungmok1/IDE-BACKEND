@@ -1,6 +1,7 @@
 package everyide.webide.container;
 
 import everyide.webide.container.domain.*;
+import everyide.webide.fileSystem.FileService;
 import everyide.webide.user.UserRepository;
 import everyide.webide.user.domain.User;
 import jakarta.persistence.EntityNotFoundException;
@@ -24,6 +25,7 @@ public class ContainerService {
     private String basePath;
     private final ContainerRepository containerRepository;
     private final UserRepository userRepository;
+    private final FileService fileService;
 
     public List<ContainerDetailResponse> getContainer(Long userId) {
         User findUser = userRepository.findById(userId)
@@ -63,6 +65,7 @@ public class ContainerService {
 
                 newContainer.setUser(findUser);
                 containerRepository.save(newContainer);
+                fileService.createDefaultFile(path, createContainerRequest.getLanguage());
                 log.info(createContainerRequest.getName() + " : 컨테이너 생성.");
 
             } catch (Exception e) {

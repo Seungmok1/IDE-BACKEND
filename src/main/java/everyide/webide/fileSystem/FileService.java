@@ -96,6 +96,60 @@ public class FileService {
         }
     }
 
+    public void createDefaultFile(String path, String language) {
+        String fileName = null;
+        String defaultContent = null;
+
+        if (language.equals("java")) {
+            fileName = "Main.java";
+            defaultContent = "public class Main {\n    public static void main(String[] args) {\n        System.out.println(\"Hello, World!\");\n    }\n}";
+
+        } else if (language.equals("javascript")) {
+            fileName = "main.js";
+            defaultContent = "console.log('Hello, World!');";
+        } else {
+            fileName = "main.py";
+            defaultContent = "print('Hello, World!')";
+        }
+
+        File file = new File(path, fileName);
+        try (FileWriter writer = new FileWriter(file)) {
+            writer.write(defaultContent);
+            writer.flush();
+
+            everyide.webide.fileSystem.domain.File defaultFile = everyide.webide.fileSystem.domain.File.builder()
+                    .path(path + fileName)
+                    .build();
+            fileRepository.save(defaultFile);
+
+        } catch (IOException e) {
+            e.printStackTrace(); // 파일 생성 실패시 로그에 스택 트레이스 출력
+        }
+
+    }
+
+    public String extractPathAfterEmail(String fullPath) {
+        String[] parts = fullPath.split("/");
+
+        int emailIndex = -1;
+        for (int i = 0; i < parts.length; i++) {
+            if (parts[i].contains("@")) {
+                emailIndex = i;
+                break;
+            }
+        }
+
+        if (emailIndex != -1 && emailIndex + 1 < parts.length) {
+            StringBuilder sb = new StringBuilder();
+            for (int i = emailIndex + 2; i < parts.length; i++) {
+                sb.append("/");
+                sb.append(parts[i]);
+            }
+            return sb.toString();
+        }
+
+        return "";
+    }
 
     public FileTreeResponse listFilesAndDirectories(Long userId, String containerName) {
 
@@ -109,8 +163,9 @@ public class FileService {
 
     private FileTreeResponse listFilesAndDirectoriesRecursive(File directory) {
         String type = directory.isDirectory() ? "directory" : "file";
+        String path = extractPathAfterEmail(directory.getPath()).isEmpty() ? "/" : extractPathAfterEmail(directory.getPath());
 
-        FileTreeResponse fileInfo = new FileTreeResponse(directory.getName(), type, new ArrayList<>());
+        FileTreeResponse fileInfo = new FileTreeResponse(directory.getName(), type, path, new ArrayList<>());
 
         File[] files = directory.listFiles();
         if (files != null) {
