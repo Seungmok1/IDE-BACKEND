@@ -23,14 +23,13 @@ public class TerminalService {
     private final ContainerRepository containerRepository;
     private final ConcurrentHashMap<String, String> userCurrentDirectories = new ConcurrentHashMap<>();
 
-    public String executeCommand(String roomId, String command, String sessionId) throws IOException, InterruptedException {
-        Container container = containerRepository.findByRoomId(roomId)
+    public String executeCommand(Long containerId, String command, String sessionId) throws IOException, InterruptedException {
+        Container container = containerRepository.findById(containerId)
                 .orElseThrow(() -> new EntityNotFoundException("Container Not Found"));
         String containerBasePath = container.getPath();
 
         // 사용자 세션별로 저장된 현재 작업 디렉토리를 가져옵니다. 기본값은 컨테이너의 기본 경로입니다.
         String currentDirectory = userCurrentDirectories.getOrDefault(sessionId, containerBasePath);
-        log.info(" 여기 1 !!");
         if (command.startsWith("cd ")) {
             String targetDirectory = command.substring(3); // 'cd' 이후의 문자열을 대상 디렉토리로 추출
             File newDirectory = new File(currentDirectory, targetDirectory).getCanonicalFile(); // 상대 경로를 고려하여 절대 경로로 변환
@@ -48,7 +47,6 @@ public class TerminalService {
         ProcessBuilder builder = new ProcessBuilder("sh", "-c", command);
         builder.directory(new File(currentDirectory)); // 세션별 현재 작업 디렉토리 사용
         Process process = builder.start();
-        log.info(" 여기 2 !!");
 
         BufferedReader inputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         if (process.waitFor() == 0) {

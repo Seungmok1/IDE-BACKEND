@@ -20,7 +20,7 @@
         stompClient = Stomp.over(socket);
         stompClient.connect({}, function(frame) {
             console.log('Connected: ' + frame);
-            stompClient.subscribe('/topic/terminal-output/' + containerId, function(output) {
+            stompClient.subscribe('/user/queue/container/' + containerId + "/terminal", function(output) {
                 showOutput(output.body);
             });
         });
@@ -35,7 +35,7 @@
 
     function sendCommand() {
         var command = document.getElementById('commandInput').value;
-        stompClient.send("/app/execute-command/" + containerId, {}, command);
+        stompClient.send("/app/container/" + containerId + "/terminal", {}, command);
     }
 
     function showOutput(message) {
