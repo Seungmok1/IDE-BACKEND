@@ -1,4 +1,4 @@
-package everyide.webide.websocket.chat.domain;
+package everyide.webide.chat.domain;
 
 import everyide.webide.BaseEntity;
 import everyide.webide.room.domain.Room;

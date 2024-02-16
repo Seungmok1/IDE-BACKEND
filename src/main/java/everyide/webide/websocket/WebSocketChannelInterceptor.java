@@ -1,5 +1,6 @@
 package everyide.webide.websocket;
 
+import everyide.webide.websocket.domain.Session;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -11,10 +12,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class WebSocketChannelInterceptor implements ChannelInterceptor {
+
+    private final WebSocketSessionMapper webSocketSessionMapper;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -29,10 +34,16 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
     @EventListener
     public void connect(SessionConnectEvent event) {
         log.info("입장");
+
+        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+        ConcurrentHashMap<String, String> simpSessionAttributes = (ConcurrentHashMap<String, String>) headerAccessor.getMessageHeaders().get("simpSessionAttributes");
+        String sessionId = simpSessionAttributes.get("sessionId");
+        log.info("sessionId={}, attr={}", sessionId, simpSessionAttributes);
+        webSocketSessionMapper.put(sessionId, new Session());
     }
 
     @EventListener
     public void disconnect(SessionDisconnectEvent event) {
-        log.info("퇴장");
+        log.trace("퇴장");
     }
 }
