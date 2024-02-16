@@ -17,22 +17,17 @@ public class TerminalController {
 
     private final TerminalService terminalService;
 
-    @MessageMapping("/room/{roomId}/terminal")
-    @SendToUser("/room/{roomId}/terminal")
-    public void execute(
-            @DestinationVariable String roomId,
+    @MessageMapping("/container/{containerId}/terminal")
+    @SendToUser("/queue/container/{containerId}/terminal")
+    public String execute(
+            @DestinationVariable Long containerId,
             String command,
             SimpMessageHeaderAccessor headerAccessor
     ) throws Exception {
-        log.info("웹소켓 터미널 실행, roomId={}, command={}", roomId, command);
+        log.info("웹소켓 터미널 실행, containerId={}, command={}", containerId, command);
 
-        ConcurrentHashMap<String, String> simpSessionAttributes = (ConcurrentHashMap<String, String>) headerAccessor.getMessageHeaders().get("simpSessionAttributes");
-        if (simpSessionAttributes == null) {
-            log.info("웹소켓 세션 아이디를 찾을 수 없습니다!");
-            throw new Exception("웹소켓 세션 아이디를 찾을 수 없습니다.");
-        }
-        String sessionId = simpSessionAttributes.get("sessionId");
+        String sessionId = headerAccessor.getUser().getName();
 
-        terminalService.executeCommand(roomId, command, sessionId);
+        return terminalService.executeCommand(containerId, command, sessionId);
     }
 }
