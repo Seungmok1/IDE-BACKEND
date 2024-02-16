@@ -8,4 +8,6 @@ import java.util.Optional;
 
 public interface ContainerRepository extends JpaRepository<Container, Long> {
     Optional<Container> findByPath(String path);
+
+    Optional<Container> findByRoomId(String roomId);
 }

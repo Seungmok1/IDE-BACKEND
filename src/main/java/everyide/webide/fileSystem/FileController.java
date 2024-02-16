@@ -17,6 +17,17 @@ public class FileController {
         return ResponseEntity.ok(fileService.listFilesAndDirectories(userId, containerName));
     }
 
+    @GetMapping("/api/containers/{containerId}/files")
+    public ResponseEntity<?> getFile(@PathVariable("containerId") Long id, @RequestParam("path") String path) {
+        GetFileResponse response = fileService.getFile(id, path);
+        if (response != null) {
+            return ResponseEntity.ok().body(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("파일을 찾을 수 없습니다.");
+        }
+
+    }
+
     @PostMapping("api/files")
     public ResponseEntity<?> createFile(@RequestBody CreateFileRequest createFileRequest) {
         fileService.createFile(createFileRequest);

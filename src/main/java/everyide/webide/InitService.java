@@ -44,6 +44,5 @@ public class InitService {
          em.persist(user);
          em.persist(room);
          em.persist(container);
-
      }
 }
