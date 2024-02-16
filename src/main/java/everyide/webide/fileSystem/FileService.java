@@ -154,6 +154,32 @@ public class FileService {
             e.printStackTrace(); // 파일 생성 실패시 로그에 스택 트레이스 출력
         }
 
+        File readme = new File(path, "README.md");
+        try (FileWriter writer = new FileWriter(readme)) {
+            writer.write("# 컨테이너 이름\n" +
+                    "\n" +
+                    "## 개요\n" +
+                    "\n" +
+                    "이 컨테이너는 [간단한 설명]을 위해 만들어졌습니다. 여기에는 [기술 스택, 사용된 도구, 목적 등]에 대한 정보가 포함되어야 합니다.\n" +
+                    "\n" +
+                    "## 시작하기\n" +
+                    "\n" +
+                    "이 섹션에서는 컨테이너를 사용하기 위한 사전 요구 사항과 시작 방법을 설명합니다.\n" +
+                    "\n" +
+                    "### 사전 요구 사항\n" +
+                    "\n" +
+                    "컨테이너를 사용하기 위해 필요한 도구, 라이브러리, 환경 설정 등을 나열합니다.");
+            writer.flush();
+
+            everyide.webide.fileSystem.domain.File readmeFile = everyide.webide.fileSystem.domain.File.builder()
+                    .path(path + "README.md")
+                    .build();
+            fileRepository.save(readmeFile);
+
+        } catch (IOException e) {
+            e.printStackTrace(); // 파일 생성 실패시 로그에 스택 트레이스 출력
+        }
+
     }
 
     public String extractPathAfterEmail(String fullPath) {
