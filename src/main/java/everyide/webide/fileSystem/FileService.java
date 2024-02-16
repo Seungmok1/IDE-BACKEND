@@ -1,9 +1,9 @@
 package everyide.webide.fileSystem;
 
-import everyide.webide.fileSystem.domain.dto.CreateFileRequest;
-import everyide.webide.fileSystem.domain.dto.DeleteFileRequest;
-import everyide.webide.fileSystem.domain.dto.FileTreeResponse;
-import everyide.webide.fileSystem.domain.dto.UpdateFileRequest;
+import everyide.webide.container.ContainerRepository;
+import everyide.webide.container.ContainerService;
+import everyide.webide.container.domain.Container;
+import everyide.webide.fileSystem.domain.dto.*;
 import everyide.webide.user.UserRepository;
 import everyide.webide.user.domain.User;
 import jakarta.persistence.EntityNotFoundException;
@@ -15,7 +15,10 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -27,6 +30,30 @@ public class FileService {
     private String basePath;
     private final FileRepository fileRepository;
     private final UserRepository userRepository;
+    private final ContainerRepository containerRepository;
+
+    public GetFileResponse getFile(Long containerId, String path) {
+        Optional<Container> containerOptional = containerRepository.findById(containerId);
+
+        if (containerOptional.isPresent()) {
+            Container container = containerOptional.get();
+            String filePath = container.getPath() + path;
+
+            if (!Files.exists(Paths.get(filePath))) {
+                return null;
+            }
+
+            try {
+                String content = new String(Files.readAllBytes(Paths.get(filePath)));
+                return new GetFileResponse(content);
+            } catch (IOException e) {
+                // IOException 처리
+                e.printStackTrace();
+                return null;
+            }
+        }
+        return null;
+    }
 
     public void createFile(CreateFileRequest createFileRequest) {
         String path = basePath + createFileRequest.getEmail() + createFileRequest.getPath();
