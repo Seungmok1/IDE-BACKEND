@@ -2,6 +2,7 @@ package everyide.webide.room;
 
 import everyide.webide.room.domain.CreateRoomRequestDto;
 import everyide.webide.room.domain.Room;
+import everyide.webide.room.domain.RoomType;
 import everyide.webide.room.domain.dto.RoomFixDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,10 +19,6 @@ public class RoomController {
         Room room = roomService.create(requestDto);
         return ResponseEntity.ok(room.getId());
     }
-    // 1. 방 생성 후에는 그 방에 입장해야 맞다고 생각함. 방장의 방 생성 = 입장/ 방장의 퇴장 = 방 폭파
-    // 1-1. 아무도 없는 유령방을 방지하기 위해 인원수 이슈를 생각해서 방 폭파 결정 (방나가기할때 현재 인원이 0 이면 방 비활성화함)
-    // 2. 때문에 프론트에서 입장 할 수 있도록 방의 id를 return
-    // 3. 방 생성시 현재인원 / 최대인원 추가 (생성당시 현재인원 = 1 / 최대인원 = n)
 
     @GetMapping("/api/communities")
     public ResponseEntity<?> loadAllRooms() {
@@ -32,7 +29,6 @@ public class RoomController {
     public void updateRoom(@PathVariable("roomId") String roomId, @RequestBody RoomFixDto roomfixDto) {
         roomService.fixRoom(roomId, roomfixDto);
     }
-    // 방 수정이 가능한것은? name, password, isLocked 정도만 수정하기
 
     @GetMapping("/api/community/{roomId}")
     public ResponseEntity<?> enterRoom(@PathVariable("roomId") String roomId) {
@@ -44,5 +40,12 @@ public class RoomController {
     @GetMapping("/api/community/{roomId}/exit")
     public void communityOut(@PathVariable("roomId") String roomId) {
         roomService.exitRoom(roomId);
+    }
+
+    @GetMapping("/api/communities/search")
+    public ResponseEntity<?> searchRooms(
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "type", required = false) RoomType type) {
+        return ResponseEntity.ok(roomService.searchRooms(name, type));
     }
 }

@@ -24,15 +24,19 @@ public class Room extends BaseEntity {
     private String password;
     private RoomType type;
     private Boolean available = true;
+    private Boolean fullRoom;
     @Setter
     private Integer personCnt;
     private Integer maxPeople;
+
+    @OneToOne
+    private User owner;
 
     @ElementCollection
     private List<Long> usersId;
 
     @Builder
-    public Room(Boolean isLocked, String name, String password, RoomType type, Boolean available, Integer personCnt, Integer maxPeople, List<Long> usersId) {
+    public Room(Boolean isLocked, String name, String password, RoomType type, Boolean fullRoom, Boolean available, Integer personCnt, User owner, Integer maxPeople, List<Long> usersId) {
         id = UUID.randomUUID().toString();
         this.name = name;
         this.password = password;
@@ -40,7 +44,9 @@ public class Room extends BaseEntity {
         this.type = type;
         this.personCnt = personCnt;
         this.maxPeople = maxPeople;
+        this.fullRoom = fullRoom;
         this.usersId = usersId;
+        this.owner = owner;
         // 사용자가 available 값을 명시적으로 설정한 경우 해당 값을 사용
         if (available != null) {
             this.available = available;
@@ -60,5 +66,13 @@ public class Room extends BaseEntity {
 
     public void setAvailable(Boolean available) {
         this.available = available;
+    }
+
+    public void setfullRoom(Boolean fullRoom) {
+        this.fullRoom = fullRoom;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
     }
 }

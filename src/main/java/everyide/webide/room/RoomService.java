@@ -1,5 +1,6 @@
 package everyide.webide.room;
 
+import everyide.webide.config.auth.exception.RoomDestroyException;
 import everyide.webide.container.ContainerRepository;
 import everyide.webide.container.domain.Container;
 import everyide.webide.room.domain.*;
@@ -37,6 +38,8 @@ public class RoomService {
                 .type(RoomType.valueOf(requestDto.getRoomType()))
                 .maxPeople(requestDto.getMaxPeople()) // 최대 입장 허용 인원을 프론트에서 막을지.. 백에서도 막아야되는지..?
                 .usersId(new ArrayList<>())
+                .fullRoom(false)
+                .owner(user)
                 .personCnt(1)
                 .build();
         Container container = Container.builder()
@@ -55,13 +58,7 @@ public class RoomService {
     public List<RoomResponseDto> loadAllRooms() {
         return roomRepository.findAllByAvailableTrue()
                 .stream()
-                .map(el -> RoomResponseDto.builder()
-                        .roomId(el.getId())
-                        .name(el.getName())
-                        .isLocked(el.getIsLocked())
-                        .type(el.getType())
-                        .available(el.getAvailable())
-                        .build())
+                .map(this::toRoomResponseDto)
                 .collect(Collectors.toList());
     }
 
@@ -71,7 +68,8 @@ public class RoomService {
         // 1. 만약 현재인원과 총 인원이 같으면 들어갈 수 없다. 현재 인원은 무조건 총 인원보다 작아야 한다.
         //    만약 그렇지 않다면 예외처리
         if (room.getPersonCnt().equals(room.getMaxPeople())) {
-            throw new RuntimeException("Room is full");
+            room.setfullRoom(true);
+            throw new RuntimeException("너는 우리와 함께 할 수 없어");
         }
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -122,13 +120,60 @@ public class RoomService {
         Optional<User> byEmail = userRepository.findByEmail(email);
         User user = byEmail.orElseThrow();
 
-        room.setPersonCnt(room.getPersonCnt() - 1);
-        room.getUsersId().remove(user.getId());
-
-        if (room.getPersonCnt() == 0) {
+        if (room.getFullRoom()) {
+            room.setfullRoom(false);
+        }
+        // exitRoom을 실행하는 user가 Owner라면 방은 폭파됨. 참가 인원은 모두 삭제되고
+        // UsersId에 있는 모든 유저들을 로비로 리다이렉트 해야함
+        if(user.equals(room.getOwner())) {
             room.setAvailable(false);
+            room.getUsersId().clear();
+            room.setPersonCnt(0);
+            room.setOwner(null);
+            user.setRoom(null);
+            roomRepository.save(room);
+            userRepository.save(user);
+            throw new RoomDestroyException("도비는 이제 자유에요.");
+        } else {
+            room.setPersonCnt(room.getPersonCnt() - 1);
+            room.getUsersId().remove(user.getId());
         }
 
         roomRepository.save(room);
+    }
+
+    public List<RoomResponseDto> searchRooms(String name, RoomType type) {
+        if (name == null) {
+            return roomRepository.findAllByType(type)
+                    .stream()
+                    .map(this::toRoomResponseDto)
+                    .collect(Collectors.toList());
+        }
+        if (type == null) {
+            return roomRepository.findAllByNameContaining(name)
+                    .stream()
+                    .map(this::toRoomResponseDto)
+                    .collect(Collectors.toList());
+        }
+        return roomRepository.findAllByNameContainingAndType(name, type)
+                .stream()
+                .map(this::toRoomResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    private RoomResponseDto toRoomResponseDto(Room room) {
+        return RoomResponseDto.builder()
+                .roomId(room.getId())
+                .name(room.getName())
+                .isLocked(room.getIsLocked())
+                .type(room.getType())
+                .available(room.getAvailable())
+                .fullRoom(room.getFullRoom())
+                .personCnt(room.getPersonCnt())
+                .maxPeople(room.getMaxPeople())
+                .ownerName(Optional.ofNullable(room.getOwner())
+                        .map(User::getName)
+                        .orElse("Unknown"))
+                .build();
     }
 }

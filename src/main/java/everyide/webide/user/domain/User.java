@@ -4,6 +4,7 @@ import everyide.webide.BaseEntity;
 import everyide.webide.config.auth.user.oauth2.AuthProvider;
 import everyide.webide.config.auth.user.oauth2.OAuth2UserInfo;
 import everyide.webide.container.domain.Container;
+import everyide.webide.room.domain.Room;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -44,6 +45,9 @@ public class User extends BaseEntity {
 
     @OneToMany(mappedBy = "user")
     private List<Container> containers = new ArrayList<>();;
+
+    @OneToOne
+    private Room room;
 
     @Builder
     public User(Long id, String name, String picture, String email, String password, String role, String refreshToken, AuthProvider provider, String providerId) {
@@ -90,6 +94,10 @@ public class User extends BaseEntity {
 
     public void removeContainer(Container container) {
         this.containers.remove(container);
+    }
+
+    public void setRoom(Room room) {
+        this.room = room;
     }
 
 }
