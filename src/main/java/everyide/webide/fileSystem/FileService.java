@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -165,7 +166,7 @@ public class FileService {
         String type = directory.isDirectory() ? "directory" : "file";
         String path = extractPathAfterEmail(directory.getPath()).isEmpty() ? "/" : extractPathAfterEmail(directory.getPath());
 
-        FileTreeResponse fileInfo = new FileTreeResponse(directory.getName(), type, path, new ArrayList<>());
+        FileTreeResponse fileInfo = new FileTreeResponse(UUID.randomUUID(), directory.getName(), type, path, new ArrayList<>());
 
         File[] files = directory.listFiles();
         if (files != null) {
