@@ -1,4 +1,4 @@
-package everyide.webide.websocket.chat;
+package everyide.webide.chat;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

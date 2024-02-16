@@ -1,6 +1,5 @@
 package everyide.webide.websocket;
 
-import everyide.webide.command.CommandService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
@@ -21,7 +20,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .setAllowedOriginPatterns("*")
                 .setHandshakeHandler(handshakeHandler)
                 .withSockJS();
-        registry.addEndpoint("/ws").setAllowedOriginPatterns("*");
     }
 
     @Override
