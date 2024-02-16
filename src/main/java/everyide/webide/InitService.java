@@ -22,21 +22,27 @@ public class InitService {
 
      public void dbInit() {
 
-//         SignRequestDto signRequestDto = new SignRequestDto("kms@goorm.io", "kms", bCryptPasswordEncoder.encode("1234"), bCryptPasswordEncoder.encode("1234"));
-//         userService.signUpUser(signRequestDto);
-//
-//         User user = User.builder()
-//                 .name("hi")
-//                 .email("1@1.com")
-//                 .password(bCryptPasswordEncoder.encode("12345678"))
-//                 .role("USER")
-//                 .build();
-//
-//         Room room = Room.builder()
-//                 .name("123")
-//                 .build();
-//
-//         em.persist(user);
-//         em.persist(room);
+         SignRequestDto signRequestDto = new SignRequestDto("kms@goorm.io", "kms", bCryptPasswordEncoder.encode("1234"), bCryptPasswordEncoder.encode("1234"));
+         userService.signUpUser(signRequestDto);
+
+         User user = User.builder()
+                 .name("hi")
+                 .email("1@1.com")
+                 .password(bCryptPasswordEncoder.encode("12345678"))
+                 .role("USER")
+                 .build();
+
+         Room room = Room.builder()
+                 .name("123")
+                 .build();
+
+         Container container = Container.builder()
+                 .name("123")
+                 .build();
+
+
+         em.persist(user);
+         em.persist(room);
+         em.persist(container);
      }
 }
