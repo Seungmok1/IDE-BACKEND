@@ -21,6 +21,8 @@ spec:
               value: Asia/Seoul
             - name: DATABASE_URL
               value: jdbc:mysql://mysql:3306/everyide
+            - name: BASE_PATH
+              value: /everyDataBase/
           resources:
             requests:
               memory: 1Gi
