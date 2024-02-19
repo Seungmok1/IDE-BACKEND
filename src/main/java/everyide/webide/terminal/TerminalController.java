@@ -18,7 +18,7 @@ public class TerminalController {
     private final TerminalService terminalService;
 
     @MessageMapping("/container/{containerId}/terminal")
-    @SendToUser("/queue/container/{containerId}/terminal")
+    @SendToUser(value = "/queue/container/{containerId}/terminal", broadcast = false)
     public String execute(
             @DestinationVariable Long containerId,
             String command,
