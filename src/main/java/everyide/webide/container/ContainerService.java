@@ -1,7 +1,12 @@
 package everyide.webide.container;
 
 import everyide.webide.container.domain.*;
+import everyide.webide.fileSystem.DirectoryRepository;
+import everyide.webide.fileSystem.DirectoryService;
 import everyide.webide.fileSystem.FileService;
+import everyide.webide.fileSystem.domain.Directory;
+import everyide.webide.fileSystem.domain.dto.DeleteDirectoryRequest;
+import everyide.webide.fileSystem.domain.dto.UpdateDirectoryRequest;
 import everyide.webide.user.UserRepository;
 import everyide.webide.user.domain.User;
 import jakarta.persistence.EntityNotFoundException;
@@ -26,8 +31,10 @@ public class ContainerService {
     @Value("${file.basePath}")
     private String basePath;
     private final ContainerRepository containerRepository;
+    private final DirectoryRepository directoryRepository;
     private final UserRepository userRepository;
     private final FileService fileService;
+    private final DirectoryService directoryService;
 
     public List<ContainerDetailResponse> getContainer(Long userId) {
         User findUser = userRepository.findById(userId)
@@ -35,6 +42,7 @@ public class ContainerService {
 
         return findUser.getContainers().stream()
                 .map(container -> ContainerDetailResponse.builder()
+                        .id(container.getId())
                         .name(container.getName())
                         .description(container.getDescription())
                         .language(container.getLanguage())
@@ -67,6 +75,10 @@ public class ContainerService {
 
                         newContainer.setUser(findUser);
                         containerRepository.save(newContainer);
+                        Directory directory = Directory.builder()
+                                .path(path)
+                                .build();
+                        directoryRepository.save(directory);
                         fileService.createDefaultFile(path, createContainerRequest.getLanguage());
                         return "ok";
                     } catch (Exception e) {
@@ -94,19 +106,11 @@ public class ContainerService {
             Container findContainer = containerRepository.findByPath(path)
                     .orElseThrow(() -> new EntityNotFoundException("Container not found."));
 
-            try {
-                FileUtils.deleteDirectory(container);
+            findContainer.getUser().removeContainer(findContainer);
+            containerRepository.delete(findContainer);
+            directoryService.deleteDirectory(new DeleteDirectoryRequest(deleteContainerRequest.getEmail(), "/" + deleteContainerRequest.getName()));
 
-                // 데이터베이스에서도 해당 컨테이너 정보 삭제
-                findContainer.getUser().removeContainer(findContainer);
-                containerRepository.delete(findContainer);
-
-                return true;
-            } catch (IOException e) {
-                // 컨테이너 삭제 중 발생한 예외 처리
-                e.printStackTrace();
-                return false;
-            }
+            return true;
         } else {
             return false;
         }
@@ -133,7 +137,9 @@ public class ContainerService {
                     .orElseThrow(() -> new EntityNotFoundException("Container not found."));
 
             containerRepository.save(container.updateContainer(updateContainerRequest.getNewName(), newPath, updateContainerRequest.getNewDescription(), updateContainerRequest.isActive()));
-            oldContainer.renameTo(newContainer);
+//            oldContainer.renameTo(newContainer);
+
+            directoryService.updateDirectory(new UpdateDirectoryRequest(updateContainerRequest.getEmail(), "/" + updateContainerRequest.getOldName(), "/" + updateContainerRequest.getNewName()));
 
             return "ok";
         } else {

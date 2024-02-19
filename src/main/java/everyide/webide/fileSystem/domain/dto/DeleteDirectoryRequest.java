@@ -6,4 +6,9 @@ import lombok.Data;
 public class DeleteDirectoryRequest {
     private String email;
     private String path;
+
+    public DeleteDirectoryRequest(String email, String path) {
+        this.email = email;
+        this.path = path;
+    }
 }
