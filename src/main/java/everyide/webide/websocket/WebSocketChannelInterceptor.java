@@ -21,7 +21,7 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
 
     private final WebSocketUserSessionMapper webSocketUserSessionMapper;
     private final WebSocketRoomUserCountMapper webSocketRoomUserCountMapper;
-    private final SimpMessagingTemplate messagingTemplate;
+//    private final SimpMessagingTemplate messagingTemplate;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -47,7 +47,7 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
         log.info("입장 세션={}", sessionId);
 
         //TODO 세션에서 roomId를 가져와서 브로드캐스팅하기
-        messagingTemplate.convertAndSend("/topic/room/{roomId}/state", "현재 유저 정보");
+//        messagingTemplate.convertAndSend("/topic/room/{roomId}/state", "현재 유저 정보");
     }
 
     @EventListener
@@ -60,7 +60,7 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
         webSocketRoomUserCountMapper.decrease(getHeaderValue(headerAccessor, "projectId"));
 
         //TODO 세션에서 roomId를 가져와서 브로드캐스팅하기
-        messagingTemplate.convertAndSend("/topic/room/{roomId}/state", "현재 유저 정보");
+//        messagingTemplate.convertAndSend("/topic/room/{roomId}/state", "현재 유저 정보");
     }
 
     private String getHeaderValue(SimpMessageHeaderAccessor headerAccessor, String headerKey) {
