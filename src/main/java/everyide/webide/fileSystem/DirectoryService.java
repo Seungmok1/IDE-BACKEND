@@ -26,7 +26,7 @@ public class DirectoryService {
     private final UserRepository userRepository;
 
 
-    public Directory createDirectory(CreateDirectoryRequest createDirectoryRequest) {
+    public String createDirectory(CreateDirectoryRequest createDirectoryRequest) {
 
         String path = basePath + createDirectoryRequest.getEmail() + createDirectoryRequest.getPath();
         File directory = new File(path);
@@ -42,15 +42,15 @@ public class DirectoryService {
                 directoryRepository.save(newDirectory);
                 log.info(path + " 디렉토리 생성.");
 
-                return newDirectory;
+                return "ok";
             } catch (Exception e) {
                 e.getStackTrace();
             }
         } else {
             log.info(path + " 같은 이름의 디렉토리가 이미 있습니다.");
+            return "already";
         }
-
-        return null;
+        return "cant";
 
     }
 
@@ -99,14 +99,14 @@ public class DirectoryService {
                 // 데이터베이스에서도 해당 디렉토리 정보 삭제
                 directoryRepository.delete(findDir);
 
-                return path + " 삭제완료.";
+                return "ok";
             } catch (IOException e) {
                 // 디렉토리 삭제 중 발생한 예외 처리
                 e.printStackTrace();
-                return "삭제 실패: " + path + " (오류 메시지: " + e.getMessage() + ")";
+                return "cant";
             }
         } else {
-            return "삭제 실패: " + path + " (디렉토리가 존재하지 않습니다.)";
+            return "cant";
         }
     }
 
@@ -122,16 +122,18 @@ public class DirectoryService {
         File toDirectory = new File(toPath);
 
         if (fromDirectory.exists()) {
-
+            if (toDirectory.exists()) {
+                return "cant";
+            }
             Directory directory = directoryRepository.findByPath(fromPath)
                     .orElseThrow(() -> new EntityNotFoundException("Directory not found."));
 
             directoryRepository.save(directory.updateDirectory(toPath));
             fromDirectory.renameTo(toDirectory);
 
-            return "폴더 수정 완료";
+            return "ok";
         } else {
-            return "폴더 수정 불가";
+            return "cant";
         }
     }
 
