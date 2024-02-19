@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class MessageController {
 
     private final MessageRepository messageRepository;
+
+//    @SubscribeMapping("/topic/room/{roomId}/chat")
+//    @SendTo("topic/room/{roomId}/chat")
+//    public MessageDto enter(@DestinationVariable String roomId) {
+//        return new MessageDto("1", "TALK", "입장!", 1L);
+//    }
 
     @Transactional
     @MessageMapping("/room/{roomId}/chat")

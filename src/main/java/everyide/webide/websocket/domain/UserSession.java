@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class Session {
+public class UserSession {
     private Long userId;
     private Long containerId;
 }

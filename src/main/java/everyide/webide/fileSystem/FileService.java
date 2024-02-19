@@ -55,7 +55,7 @@ public class FileService {
         return null;
     }
 
-    public void createFile(CreateFileRequest createFileRequest) {
+    public String createFile(CreateFileRequest createFileRequest) {
         String path = basePath + createFileRequest.getEmail() + createFileRequest.getPath();
         File file = new File(path);
 
@@ -70,15 +70,18 @@ public class FileService {
                 fileRepository.save(newFile);
 
                 log.info(path + " 파일이 생성되었습니다.");
+                return "ok";
             } else {
                 log.info(path + " 파일은 이미 존재합니다.");
+                return "already used";
             }
         } catch (IOException e) {
             log.error("파일 생성 중 오류 발생", e);
+            return "cant";
         }
     }
 
-    public void updateFile(UpdateFileRequest updateFileRequest) {
+    public String updateFile(UpdateFileRequest updateFileRequest) {
         String oldPath = basePath + updateFileRequest.getEmail() + updateFileRequest.getFromPath();
         File oldFile = new File(oldPath);
 
@@ -86,8 +89,10 @@ public class FileService {
             try (FileWriter writer = new FileWriter(oldFile, false)) { // false to overwrite
                 writer.write(updateFileRequest.getNewContent());
                 log.info(oldPath + " 파일이 업데이트되었습니다.");
+                return "ok";
             } catch (IOException e) {
                 log.error("파일 업데이트 중 오류 발생", e);
+                return "cant";
             }
         }
 
@@ -102,14 +107,18 @@ public class FileService {
                 fileRepository.save(findFile.updateFile(newPath));
 
                 log.info(oldPath + " 파일이 " + newPath + "로 이름이 변경되었습니다.");
+                return "ok";
             } else {
                 log.error("파일 이름 변경 실패");
+                return "cant";
             }
+        } else {
+            return "cant";
         }
     }
 
 
-    public void deleteFile(DeleteFileRequest deleteFileRequest) {
+    public String deleteFile(DeleteFileRequest deleteFileRequest) {
         String path = basePath + deleteFileRequest.getEmail() + deleteFileRequest.getPath();
         File file = new File(path);
 
@@ -119,8 +128,10 @@ public class FileService {
             fileRepository.delete(findFile);
 
             log.info(path + " 파일이 삭제되었습니다.");
+            return "ok";
         } else {
             log.error("파일 삭제 실패");
+            return "cant";
         }
     }
 
