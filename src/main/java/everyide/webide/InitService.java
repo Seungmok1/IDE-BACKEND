@@ -36,13 +36,13 @@ public class InitService {
                  .name("123")
                  .build();
 
-         Container container = Container.builder()
-                 .name("123")
-                 .build();
+//         Container container = Container.builder()
+//                 .name("123")
+//                 .build();
 
 
          em.persist(user);
          em.persist(room);
-         em.persist(container);
+//         em.persist(container);
      }
 }
