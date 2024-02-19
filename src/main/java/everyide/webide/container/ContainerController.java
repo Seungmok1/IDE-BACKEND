@@ -28,13 +28,14 @@ public class ContainerController {
 
     @PostMapping("api/containers")
     public ResponseEntity<?> createContainers(@RequestBody CreateContainerRequest createContainerRequest) {
-        String status = containerService.createContainer(createContainerRequest);
-        if (status.equals("ok")) {
-            return ResponseEntity.status(HttpStatus.CREATED).body("컨테이너 생성완료.");
-        } else if (status.equals("already used")) {
+        ContainerDetailResponse container = containerService.createContainer(createContainerRequest);
+        Long status = container.getId();
+        if (status.equals(-200L)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("존재하지 않는 경로입니다. (사용자 이메일 확인)");
+        } else if (status.equals(-300L)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이미 사용중인 이름입니다.");
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("존재하지 않는 경로입니다. (사용자 이메일 확인)");
+            return ResponseEntity.ok(container);
         }
 
     }

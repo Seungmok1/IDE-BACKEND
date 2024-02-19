@@ -54,48 +54,65 @@ public class ContainerService {
 
     }
 
-    public String createContainer(CreateContainerRequest createContainerRequest) {
+    public ContainerDetailResponse createContainer(CreateContainerRequest createContainerRequest) {
         Optional<User> findUserOptional = userRepository.findByEmail(createContainerRequest.getEmail());
 
-        if (findUserOptional.isPresent()) {
-            User findUser = findUserOptional.get();
-            String path = basePath + createContainerRequest.getEmail() + "/" + createContainerRequest.getName();
-            File container = new File(path);
+        if (!findUserOptional.isPresent()) {
+            return ContainerDetailResponse.builder()
+                    .id(-200L)
+                    .build();
+        }
 
-            if (!container.exists()) {
-                boolean isCreated = container.mkdir();
-                if (isCreated) {
-                    try {
-                        Container newContainer = Container.builder()
-                                .name(createContainerRequest.getName())
-                                .description(createContainerRequest.getDescription())
-                                .path(path)
-                                .language(createContainerRequest.getLanguage())
-                                .build();
+        User findUser = findUserOptional.get();
+        String path = basePath + createContainerRequest.getEmail() + "/" + createContainerRequest.getName();
+        File container = new File(path);
 
-                        newContainer.setUser(findUser);
-                        containerRepository.save(newContainer);
-                        Directory directory = Directory.builder()
-                                .path(path)
-                                .build();
-                        directoryRepository.save(directory);
-                        fileService.createDefaultFile(path, createContainerRequest.getLanguage());
-                        return "ok";
-                    } catch (Exception e) {
-                        // 로그를 남기고 오류 메시지 반환
-                        e.printStackTrace(); // 개발 환경에서만 사용, 프로덕션 코드에는 적절한 로깅을 사용하세요.
-                        return "error";
-                    }
-                } else {
-                    return "cant";
-                }
-            } else {
-                return "already used";
-            }
-        } else {
-            return "cant";
+        if (container.exists()) {
+            return ContainerDetailResponse.builder()
+                    .id(-300L)
+                    .build();
+        }
+
+        boolean isCreated = container.mkdir();
+        if (!isCreated) {
+            return ContainerDetailResponse.builder()
+                    .id(-200L)
+                    .build();
+        }
+
+        try {
+            Container newContainer = Container.builder()
+                    .name(createContainerRequest.getName())
+                    .description(createContainerRequest.getDescription())
+                    .path(path)
+                    .language(createContainerRequest.getLanguage())
+                    .build();
+
+            newContainer.setUser(findUser);
+            containerRepository.save(newContainer);
+            Directory directory = Directory.builder()
+                    .path(path)
+                    .build();
+            directoryRepository.save(directory);
+            fileService.createDefaultFile(path, createContainerRequest.getLanguage());
+
+            return ContainerDetailResponse.builder()
+                    .id(newContainer.getId())
+                    .name(newContainer.getName())
+                    .description(newContainer.getDescription())
+                    .language(newContainer.getLanguage())
+                    .active(newContainer.isActive())
+                    .createDate(newContainer.getCreateDate())
+                    .lastModifiedDate(newContainer.getLastModifiedDate())
+                    .build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ContainerDetailResponse.builder()
+                    .id(-200L)
+                    .build();
         }
     }
+
 
 
     public boolean deleteContainer(DeleteContainerRequest deleteContainerRequest) {
