@@ -1,6 +1,7 @@
 package everyide.webide.room.domain;
 
 import everyide.webide.BaseEntity;
+import everyide.webide.container.domain.Container;
 import everyide.webide.user.domain.User;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -8,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,6 +33,8 @@ public class Room extends BaseEntity {
 
     @OneToOne
     private User owner;
+    @OneToMany(mappedBy = "room")
+    private List<Container> containers = new ArrayList<>();
 
     @ElementCollection
     private List<Long> usersId;
@@ -73,5 +77,9 @@ public class Room extends BaseEntity {
 
     public void setRootPath(String path) {
         this.rootPath = path;
+    }
+
+    public void addContainer(Container container) {
+        this.containers.add(container);
     }
 }
