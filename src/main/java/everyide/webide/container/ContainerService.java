@@ -1,7 +1,12 @@
 package everyide.webide.container;
 
 import everyide.webide.container.domain.*;
+import everyide.webide.fileSystem.DirectoryRepository;
+import everyide.webide.fileSystem.DirectoryService;
 import everyide.webide.fileSystem.FileService;
+import everyide.webide.fileSystem.domain.Directory;
+import everyide.webide.fileSystem.domain.dto.DeleteDirectoryRequest;
+import everyide.webide.fileSystem.domain.dto.UpdateDirectoryRequest;
 import everyide.webide.user.UserRepository;
 import everyide.webide.user.domain.User;
 import jakarta.persistence.EntityNotFoundException;
@@ -26,8 +31,10 @@ public class ContainerService {
     @Value("${file.basePath}")
     private String basePath;
     private final ContainerRepository containerRepository;
+    private final DirectoryRepository directoryRepository;
     private final UserRepository userRepository;
     private final FileService fileService;
+    private final DirectoryService directoryService;
 
     public List<ContainerDetailResponse> getContainer(Long userId) {
         User findUser = userRepository.findById(userId)
@@ -35,6 +42,7 @@ public class ContainerService {
 
         return findUser.getContainers().stream()
                 .map(container -> ContainerDetailResponse.builder()
+                        .id(container.getId())
                         .name(container.getName())
                         .description(container.getDescription())
                         .language(container.getLanguage())
@@ -46,44 +54,65 @@ public class ContainerService {
 
     }
 
-    public String createContainer(CreateContainerRequest createContainerRequest) {
+    public ContainerDetailResponse createContainer(CreateContainerRequest createContainerRequest) {
         Optional<User> findUserOptional = userRepository.findByEmail(createContainerRequest.getEmail());
 
-        if (findUserOptional.isPresent()) {
-            User findUser = findUserOptional.get();
-            String path = basePath + createContainerRequest.getEmail() + "/" + createContainerRequest.getName();
-            File container = new File(path);
+        if (!findUserOptional.isPresent()) {
+            return ContainerDetailResponse.builder()
+                    .id(-200L)
+                    .build();
+        }
 
-            if (!container.exists()) {
-                boolean isCreated = container.mkdir();
-                if (isCreated) {
-                    try {
-                        Container newContainer = Container.builder()
-                                .name(createContainerRequest.getName())
-                                .description(createContainerRequest.getDescription())
-                                .path(path)
-                                .language(createContainerRequest.getLanguage())
-                                .build();
+        User findUser = findUserOptional.get();
+        String path = basePath + createContainerRequest.getEmail() + "/" + createContainerRequest.getName();
+        File container = new File(path);
 
-                        newContainer.setUser(findUser);
-                        containerRepository.save(newContainer);
-                        fileService.createDefaultFile(path, createContainerRequest.getLanguage());
-                        return "ok";
-                    } catch (Exception e) {
-                        // 로그를 남기고 오류 메시지 반환
-                        e.printStackTrace(); // 개발 환경에서만 사용, 프로덕션 코드에는 적절한 로깅을 사용하세요.
-                        return "error";
-                    }
-                } else {
-                    return "cant";
-                }
-            } else {
-                return "already used";
-            }
-        } else {
-            return "cant";
+        if (container.exists()) {
+            return ContainerDetailResponse.builder()
+                    .id(-300L)
+                    .build();
+        }
+
+        boolean isCreated = container.mkdir();
+        if (!isCreated) {
+            return ContainerDetailResponse.builder()
+                    .id(-200L)
+                    .build();
+        }
+
+        try {
+            Container newContainer = Container.builder()
+                    .name(createContainerRequest.getName())
+                    .description(createContainerRequest.getDescription())
+                    .path(path)
+                    .language(createContainerRequest.getLanguage())
+                    .build();
+
+            newContainer.setUser(findUser);
+            containerRepository.save(newContainer);
+            Directory directory = Directory.builder()
+                    .path(path)
+                    .build();
+            directoryRepository.save(directory);
+            fileService.createDefaultFile(path, createContainerRequest.getLanguage());
+
+            return ContainerDetailResponse.builder()
+                    .id(newContainer.getId())
+                    .name(newContainer.getName())
+                    .description(newContainer.getDescription())
+                    .language(newContainer.getLanguage())
+                    .active(newContainer.isActive())
+                    .createDate(newContainer.getCreateDate())
+                    .lastModifiedDate(newContainer.getLastModifiedDate())
+                    .build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ContainerDetailResponse.builder()
+                    .id(-200L)
+                    .build();
         }
     }
+
 
 
     public boolean deleteContainer(DeleteContainerRequest deleteContainerRequest) {
@@ -94,19 +123,11 @@ public class ContainerService {
             Container findContainer = containerRepository.findByPath(path)
                     .orElseThrow(() -> new EntityNotFoundException("Container not found."));
 
-            try {
-                FileUtils.deleteDirectory(container);
+            findContainer.getUser().removeContainer(findContainer);
+            containerRepository.delete(findContainer);
+            directoryService.deleteDirectory(new DeleteDirectoryRequest(deleteContainerRequest.getEmail(), "/" + deleteContainerRequest.getName()));
 
-                // 데이터베이스에서도 해당 컨테이너 정보 삭제
-                findContainer.getUser().removeContainer(findContainer);
-                containerRepository.delete(findContainer);
-
-                return true;
-            } catch (IOException e) {
-                // 컨테이너 삭제 중 발생한 예외 처리
-                e.printStackTrace();
-                return false;
-            }
+            return true;
         } else {
             return false;
         }
@@ -133,7 +154,9 @@ public class ContainerService {
                     .orElseThrow(() -> new EntityNotFoundException("Container not found."));
 
             containerRepository.save(container.updateContainer(updateContainerRequest.getNewName(), newPath, updateContainerRequest.getNewDescription(), updateContainerRequest.isActive()));
-            oldContainer.renameTo(newContainer);
+//            oldContainer.renameTo(newContainer);
+
+            directoryService.updateDirectory(new UpdateDirectoryRequest(updateContainerRequest.getEmail(), "/" + updateContainerRequest.getOldName(), "/" + updateContainerRequest.getNewName()));
 
             return "ok";
         } else {

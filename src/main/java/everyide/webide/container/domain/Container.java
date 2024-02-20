@@ -2,6 +2,8 @@ package everyide.webide.container.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import everyide.webide.BaseEntity;
+import everyide.webide.fileSystem.domain.Directory;
+import everyide.webide.fileSystem.domain.File;
 import everyide.webide.room.domain.Room;
 import everyide.webide.user.domain.User;
 import jakarta.persistence.*;
@@ -10,9 +12,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter @Setter
 @NoArgsConstructor
+@Table(name = "containers")
 public class Container extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,6 +30,8 @@ public class Container extends BaseEntity {
     private String language;
     private boolean active;
 
+    @OneToMany(mappedBy = "container")
+    private List<Directory> directories = new ArrayList<>();
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     private User user;
@@ -45,6 +53,10 @@ public class Container extends BaseEntity {
     public void setUser(User user) {
         this.user = user;
         user.addContainer(this);
+    }
+
+    public void addDirectories(Directory directory) {
+        this.directories.add(directory);
     }
 
     public void onContainer() {

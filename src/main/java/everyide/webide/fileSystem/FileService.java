@@ -3,6 +3,7 @@ package everyide.webide.fileSystem;
 import everyide.webide.container.ContainerRepository;
 import everyide.webide.container.ContainerService;
 import everyide.webide.container.domain.Container;
+import everyide.webide.fileSystem.domain.Directory;
 import everyide.webide.fileSystem.domain.dto.*;
 import everyide.webide.user.UserRepository;
 import everyide.webide.user.domain.User;
@@ -29,6 +30,7 @@ public class FileService {
     @Value("${file.basePath}")
     private String basePath;
     private final FileRepository fileRepository;
+    private final DirectoryRepository directoryRepository;
     private final UserRepository userRepository;
     private final ContainerRepository containerRepository;
 
@@ -157,7 +159,8 @@ public class FileService {
             writer.flush();
 
             everyide.webide.fileSystem.domain.File defaultFile = everyide.webide.fileSystem.domain.File.builder()
-                    .path(path + fileName)
+                    .path(path + "/" + fileName)
+                    .content(defaultContent)
                     .build();
             fileRepository.save(defaultFile);
 
@@ -167,7 +170,7 @@ public class FileService {
 
         File readme = new File(path, "README.md");
         try (FileWriter writer = new FileWriter(readme)) {
-            writer.write("# 컨테이너 이름\n" +
+            String content = "# 컨테이너 이름\n" +
                     "\n" +
                     "## 개요\n" +
                     "\n" +
@@ -179,12 +182,15 @@ public class FileService {
                     "\n" +
                     "### 사전 요구 사항\n" +
                     "\n" +
-                    "컨테이너를 사용하기 위해 필요한 도구, 라이브러리, 환경 설정 등을 나열합니다.");
+                    "컨테이너를 사용하기 위해 필요한 도구, 라이브러리, 환경 설정 등을 나열합니다.";
+            writer.write(content);
             writer.flush();
 
             everyide.webide.fileSystem.domain.File readmeFile = everyide.webide.fileSystem.domain.File.builder()
-                    .path(path + "README.md")
+                    .path(path + "/README.md")
+                    .content(content)
                     .build();
+
             fileRepository.save(readmeFile);
 
         } catch (IOException e) {
@@ -229,8 +235,21 @@ public class FileService {
     private FileTreeResponse listFilesAndDirectoriesRecursive(File directory) {
         String type = directory.isDirectory() ? "directory" : "file";
         String path = extractPathAfterEmail(directory.getPath()).isEmpty() ? "/" : extractPathAfterEmail(directory.getPath());
+        String id = null;
 
-        FileTreeResponse fileInfo = new FileTreeResponse(UUID.randomUUID(), directory.getName(), type, path, new ArrayList<>());
+        log.info(directory.getPath());
+        if (type.equals("directory")) {
+            Directory findDirectory = directoryRepository.findByPath(directory.getPath())
+                    .orElseThrow(() -> new EntityNotFoundException("Not found."));
+
+            id = findDirectory.getId();
+        } else {
+            everyide.webide.fileSystem.domain.File findFile = fileRepository.findByPath(directory.getPath())
+                    .orElseThrow(() -> new EntityNotFoundException("Not found."));
+            id = findFile.getId();
+        }
+
+        FileTreeResponse fileInfo = new FileTreeResponse(id, directory.getName(), type, path, new ArrayList<>());
 
         File[] files = directory.listFiles();
         if (files != null) {

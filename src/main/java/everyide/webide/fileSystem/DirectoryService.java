@@ -6,6 +6,7 @@ import everyide.webide.fileSystem.domain.dto.DeleteDirectoryRequest;
 import everyide.webide.fileSystem.domain.dto.UpdateDirectoryRequest;
 import everyide.webide.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +25,7 @@ public class DirectoryService {
     @Value("${file.basePath}")
     private String basePath;
     private final DirectoryRepository directoryRepository;
+    private final FileRepository fileRepository;
     private final UserRepository userRepository;
 
 
@@ -34,6 +37,10 @@ public class DirectoryService {
         if (!directory.exists()) {
             try {
                 directory.mkdir();
+
+                if (!directory.exists()) {
+                    return "cant";
+                }
 
                 Directory newDirectory = Directory.builder()
                         .path(path)
@@ -88,7 +95,8 @@ public class DirectoryService {
     public String deleteDirectory(DeleteDirectoryRequest deleteDirectoryRequest) {
         String path = basePath + deleteDirectoryRequest.getEmail() + deleteDirectoryRequest.getPath();
         File directory = new File(path);
-
+        log.info(String.valueOf(deleteDirectoryRequest));
+        log.info(path);
         if (directory.exists()) {
             Directory findDir = directoryRepository.findByPath(path)
                     .orElseThrow(() -> new EntityNotFoundException("Directory not found."));
@@ -97,7 +105,9 @@ public class DirectoryService {
                 FileUtils.deleteDirectory(directory);
 
                 // 데이터베이스에서도 해당 디렉토리 정보 삭제
-                directoryRepository.delete(findDir);
+                log.info(path);
+                directoryRepository.deleteByPathAndSubPaths(path);
+                fileRepository.deleteByPathAndSubPaths(path);
 
                 return "ok";
             } catch (IOException e) {
@@ -113,6 +123,7 @@ public class DirectoryService {
     /*
     * 폴더 이동/이름수정
     * */
+    @Transactional
     public String updateDirectory(UpdateDirectoryRequest updateDirectoryRequest) {
         String path = basePath + updateDirectoryRequest.getEmail();
         String fromPath = path + updateDirectoryRequest.getFromPath();
@@ -121,20 +132,69 @@ public class DirectoryService {
         File fromDirectory = new File(fromPath);
         File toDirectory = new File(toPath);
 
-        if (fromDirectory.exists()) {
-            if (toDirectory.exists()) {
-                return "cant";
-            }
-            Directory directory = directoryRepository.findByPath(fromPath)
-                    .orElseThrow(() -> new EntityNotFoundException("Directory not found."));
-
-            directoryRepository.save(directory.updateDirectory(toPath));
-            fromDirectory.renameTo(toDirectory);
-
-            return "ok";
-        } else {
+        if (!fromDirectory.exists()) {
             return "cant";
         }
+
+        if (toDirectory.exists()) {
+            return "cant";
+        }
+
+        Directory directory = directoryRepository.findByPath(fromPath)
+                .orElseThrow(() -> new EntityNotFoundException("Directory not found."));
+        directoryRepository.save(directory.updateDirectory(toPath));
+
+        // 하위 목록 경로 업데이트
+        updateSubDirectories(fromDirectory, fromPath, toPath);
+
+        // 실제 디렉토리 이름 변경
+        fromDirectory.renameTo(toDirectory);
+
+        return "ok";
     }
+
+    @Transactional
+    public void updateSubDirectories(File directory, String oldPath, String newPath) {
+        File[] files = directory.listFiles();
+
+        if (files != null) {
+            for (File file : files) {
+                String oldFilePath = file.getAbsolutePath();
+                String newFilePath = oldFilePath.replace(oldPath, newPath);
+
+                // 하위 파일/디렉토리 경로 업데이트 (데이터베이스 및 파일 시스템)
+                updateFilePathInDatabase(oldFilePath, newFilePath);
+                file.renameTo(new File(newFilePath));
+
+                // 재귀적으로 하위 디렉토리 처리
+                if (file.isDirectory()) {
+                    updateSubDirectories(file, oldPath, newPath);
+                }
+            }
+        }
+    }
+
+    @Transactional
+    public void updateFilePathInDatabase(String oldFilePath, String newFilePath) {
+        Optional<Directory> optionalDirectory = directoryRepository.findByPath(oldFilePath);
+
+        if (optionalDirectory.isPresent()) {
+            Directory dir = optionalDirectory.get();
+            dir.updateDirectory(newFilePath);
+            directoryRepository.save(dir);
+            return;
+        }
+
+        Optional<everyide.webide.fileSystem.domain.File> optionalFile = fileRepository.findByPath(oldFilePath);
+
+        if (optionalFile.isPresent()) {
+            everyide.webide.fileSystem.domain.File file = optionalFile.get();
+            file.updateFile(newFilePath);
+            fileRepository.save(file);
+            return;
+        }
+
+    }
+
 
 }
