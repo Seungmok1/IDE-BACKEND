@@ -40,19 +40,23 @@ public class Container extends BaseEntity {
     private Room room;
 
     @Builder
-    public Container(String name, String path, String description, String language, Room room) {
+    public Container(String name, String path, String description, String language) {
         this.name = name;
         this.path = path;
         this.description = description;
         this.language = language;
         this.active = true;
-        this.room = room;
     }
 
     //== 연관관계 메서드 ==//
     public void setUser(User user) {
         this.user = user;
         user.addContainer(this);
+    }
+
+    public void setRoom(Room room) {
+        this.room = room;
+        room.addContainer(this);
     }
 
     public void addDirectories(Directory directory) {

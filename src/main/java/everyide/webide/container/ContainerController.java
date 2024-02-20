@@ -1,10 +1,7 @@
 package everyide.webide.container;
 
 
-import everyide.webide.container.domain.ContainerDetailResponse;
-import everyide.webide.container.domain.CreateContainerRequest;
-import everyide.webide.container.domain.DeleteContainerRequest;
-import everyide.webide.container.domain.UpdateContainerRequest;
+import everyide.webide.container.domain.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -21,9 +18,9 @@ public class ContainerController {
 
     private final ContainerService containerService;
 
-    @GetMapping("api/{userId}/containers")
-    public ResponseEntity<List<ContainerDetailResponse>> getContainers(@PathVariable("userId") Long userId) {
-        return ResponseEntity.ok(containerService.getContainer(userId));
+    @GetMapping("api/{id}/containers")
+    public ResponseEntity<List<ContainerDetailResponse>> getContainers(@PathVariable("id") String id) {
+        return ResponseEntity.ok(containerService.getContainer(id));
     }
 
     @PostMapping("api/containers")
@@ -62,4 +59,8 @@ public class ContainerController {
         }
     }
 
+    @PostMapping("api/containers/copy")
+    public ResponseEntity<?> copyContainers(@RequestBody CopyContainerRequest copyContainerRequest) {
+        return ResponseEntity.ok(containerService.copyContainer(copyContainerRequest));
+    }
 }

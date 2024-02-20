@@ -3,22 +3,26 @@ package everyide.webide.container;
 import everyide.webide.container.domain.*;
 import everyide.webide.fileSystem.DirectoryRepository;
 import everyide.webide.fileSystem.DirectoryService;
+import everyide.webide.fileSystem.FileRepository;
 import everyide.webide.fileSystem.FileService;
 import everyide.webide.fileSystem.domain.Directory;
 import everyide.webide.fileSystem.domain.dto.DeleteDirectoryRequest;
 import everyide.webide.fileSystem.domain.dto.UpdateDirectoryRequest;
+import everyide.webide.room.RoomRepository;
+import everyide.webide.room.domain.Room;
 import everyide.webide.user.UserRepository;
 import everyide.webide.user.domain.User;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -35,35 +39,56 @@ public class ContainerService {
     private final UserRepository userRepository;
     private final FileService fileService;
     private final DirectoryService directoryService;
+    private final RoomRepository roomRepository;
+    private final FileRepository fileRepository;
 
-    public List<ContainerDetailResponse> getContainer(Long userId) {
-        User findUser = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+    public List<ContainerDetailResponse> getContainer(String id) {
+        Optional<User> findUser = userRepository.findById(Long.parseLong(id));
 
-        return findUser.getContainers().stream()
-                .map(container -> ContainerDetailResponse.builder()
-                        .id(container.getId())
-                        .name(container.getName())
-                        .description(container.getDescription())
-                        .language(container.getLanguage())
-                        .active(container.isActive())
-                        .createDate(container.getCreateDate())
-                        .lastModifiedDate(container.getLastModifiedDate())
-                        .build())
-                .collect(Collectors.toList());
+        if (findUser.isPresent()) {
+            User user = findUser.get();
+            return user.getContainers().stream()
+                    .map(container -> ContainerDetailResponse.builder()
+                            .id(container.getId())
+                            .name(container.getName())
+                            .description(container.getDescription())
+                            .language(container.getLanguage())
+                            .active(container.isActive())
+                            .createDate(container.getCreateDate())
+                            .lastModifiedDate(container.getLastModifiedDate())
+                            .build())
+                    .collect(Collectors.toList());
+        }
 
+        Optional<Room> findRoom = roomRepository.findById(id);
+
+        if (findRoom.isPresent()) {
+            Room room = findRoom.get();
+            return room.getContainers().stream()
+                    .map(container -> ContainerDetailResponse.builder()
+                            .id(container.getId())
+                            .name(container.getName())
+                            .description(container.getDescription())
+                            .language(container.getLanguage())
+                            .active(container.isActive())
+                            .createDate(container.getCreateDate())
+                            .lastModifiedDate(container.getLastModifiedDate())
+                            .build())
+                    .collect(Collectors.toList());
+        }
+        return null;
     }
 
     public ContainerDetailResponse createContainer(CreateContainerRequest createContainerRequest) {
-        Optional<User> findUserOptional = userRepository.findByEmail(createContainerRequest.getEmail());
+        Optional<User> findUser = userRepository.findByEmail(createContainerRequest.getEmail());
+        Optional<Room> findRoom = roomRepository.findById(createContainerRequest.getEmail());
 
-        if (!findUserOptional.isPresent()) {
+        if (findUser.isEmpty() && findRoom.isEmpty()) {
             return ContainerDetailResponse.builder()
                     .id(-200L)
                     .build();
         }
 
-        User findUser = findUserOptional.get();
         String path = basePath + createContainerRequest.getEmail() + "/" + createContainerRequest.getName();
         File container = new File(path);
 
@@ -88,7 +113,9 @@ public class ContainerService {
                     .language(createContainerRequest.getLanguage())
                     .build();
 
-            newContainer.setUser(findUser);
+            findUser.ifPresent(newContainer::setUser);
+            findRoom.ifPresent(newContainer::setRoom);
+
             containerRepository.save(newContainer);
             Directory directory = Directory.builder()
                     .path(path)
@@ -164,5 +191,83 @@ public class ContainerService {
         }
     }
 
+    @Transactional
+    public ContainerDetailResponse copyContainer(CopyContainerRequest copyContainerRequest) {
+        Container sourceContainer = containerRepository.findById(copyContainerRequest.getContainerId())
+                .orElseThrow(() -> new EntityNotFoundException("Source container not found."));
+
+        String newPath = basePath + copyContainerRequest.getRoomId() + "/" + sourceContainer.getName();
+        File newContainerDir = new File(newPath);
+        if (newContainerDir.exists()) {
+            throw new IllegalStateException("Target container already exists.");
+        }
+
+        try {
+            FileUtils.copyDirectory(new File(sourceContainer.getPath()), newContainerDir);
+        } catch (IOException e) {
+            log.error("Failed to copy container directory", e);
+            throw new RuntimeException("Failed to copy container.");
+        }
+
+        Container newContainer = Container.builder()
+                .name(sourceContainer.getName())
+                .description(sourceContainer.getDescription())
+                .path(newPath)
+                .language(sourceContainer.getLanguage())
+                .build();
+        newContainer.setRoom(roomRepository.findById(copyContainerRequest.getRoomId())
+                .orElseThrow(()-> new EntityNotFoundException("Room not found.")));
+        containerRepository.save(newContainer);
+
+        Directory newDirectory = Directory.builder()
+                .path(newPath)
+                .build();
+        directoryRepository.save(newDirectory);
+
+        fileService.createDefaultFile(newPath, newContainer.getLanguage());
+
+        return ContainerDetailResponse.builder()
+                .id(newContainer.getId())
+                .name(newContainer.getName())
+                .description(newContainer.getDescription())
+                .language(newContainer.getLanguage())
+                .active(newContainer.isActive())
+                .createDate(newContainer.getCreateDate())
+                .lastModifiedDate(newContainer.getLastModifiedDate())
+                .build();
+    }
+
+    private void copyDirectoryContents(String sourcePath, String targetPath, User user) {
+        File sourceDir = new File(sourcePath);
+        File[] files = sourceDir.listFiles();
+
+        if (files != null) {
+            for (File file : files) {
+                String newPath = targetPath + "/" + file.getName();
+                File newFile = new File(newPath);
+
+                if (file.isDirectory()) {
+                    newFile.mkdir();
+                    Directory newDirectory = Directory.builder()
+                            .path(newPath)
+                            .build();
+                    directoryRepository.save(newDirectory);
+                    copyDirectoryContents(file.getAbsolutePath(), newPath, user);
+                } else {
+                    try {
+                        Files.copy(file.toPath(), newFile.toPath());
+                        everyide.webide.fileSystem.domain.File dbFile = everyide.webide.fileSystem.domain.File.builder()
+                                .path(newPath)
+                                .content(Files.readString(file.toPath()))
+                                .build();
+                        fileRepository.save(dbFile);
+                    } catch (IOException e) {
+                        log.error("Failed to copy file: " + file.getAbsolutePath(), e);
+                        throw new RuntimeException("Failed to copy file.");
+                    }
+                }
+            }
+        }
+    }
 
 }

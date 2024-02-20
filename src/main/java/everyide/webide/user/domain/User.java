@@ -44,7 +44,7 @@ public class User extends BaseEntity {
     private String providerId;
 
     @OneToMany(mappedBy = "user")
-    private List<Container> containers = new ArrayList<>();;
+    private List<Container> containers = new ArrayList<>();
 
     @OneToOne
     private Room room;
