@@ -48,4 +48,9 @@ public class File extends BaseEntity {
 
         return this;
     }
+
+    public File updateContent(String newContent) {
+        this.content = newContent;
+        return this;
+    }
 }

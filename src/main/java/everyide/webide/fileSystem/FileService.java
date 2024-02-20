@@ -68,6 +68,7 @@ public class FileService {
                 }
                 everyide.webide.fileSystem.domain.File newFile = everyide.webide.fileSystem.domain.File.builder()
                         .path(path)
+                        .content(createFileRequest.getContent())
                         .build();
                 fileRepository.save(newFile);
 
@@ -90,6 +91,11 @@ public class FileService {
         if (updateFileRequest.getNewContent() != null && !updateFileRequest.getNewContent().isEmpty()) {
             try (FileWriter writer = new FileWriter(oldFile, false)) { // false to overwrite
                 writer.write(updateFileRequest.getNewContent());
+
+                everyide.webide.fileSystem.domain.File findFile = fileRepository.findByPath(oldPath)
+                        .orElseThrow(() -> new EntityNotFoundException("File not found."));
+                fileRepository.save(findFile.updateContent(updateFileRequest.getNewContent()));
+
                 log.info(oldPath + " 파일이 업데이트되었습니다.");
                 return "ok";
             } catch (IOException e) {

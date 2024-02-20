@@ -164,5 +164,59 @@ public class ContainerService {
         }
     }
 
+//    @Transactional
+//    public ContainerDetailResponse copyContainer(Long sourceContainerId, String newContainerName, String newContainerDescription, String userEmail) {
+//        // 원본 컨테이너 찾기
+//        Container sourceContainer = containerRepository.findById(sourceContainerId)
+//                .orElseThrow(() -> new EntityNotFoundException("Source container not found."));
+//
+//        // 새 컨테이너 경로 설정
+//        String newPath = basePath + userEmail + "/" + newContainerName;
+//        File newContainerDir = new File(newPath);
+//        if (newContainerDir.exists()) {
+//            throw new IllegalStateException("Target container already exists.");
+//        }
+//
+//        // 원본 컨테이너의 내용을 새 경로로 복사
+//        try {
+//            FileUtils.copyDirectory(new File(sourceContainer.getPath()), newContainerDir);
+//        } catch (IOException e) {
+//            log.error("Failed to copy container directory", e);
+//            throw new RuntimeException("Failed to copy container.");
+//        }
+//
+//        // 새 컨테이너 데이터베이스 엔트리 생성
+//        Container newContainer = Container.builder()
+//                .name(newContainerName)
+//                .description(newContainerDescription)
+//                .path(newPath)
+//                .language(sourceContainer.getLanguage()) // 원본 컨테이너의 언어 설정을 사용할 수 있습니다.
+//                .user(userRepository.findByEmail(userEmail)
+//                        .orElseThrow(() -> new EntityNotFoundException("User not found.")))
+//                .build();
+//
+//        containerRepository.save(newContainer);
+//
+//        // 새 디렉토리 데이터베이스 엔트리 생성
+//        Directory newDirectory = Directory.builder()
+//                .path(newPath)
+//                .build();
+//        directoryRepository.save(newDirectory);
+//
+//        // 필요한 경우, 새 컨테이너에 기본 파일 생성
+//        fileService.createDefaultFile(newPath, newContainer.getLanguage());
+//
+//        // 성공 응답 반환
+//        return ContainerDetailResponse.builder()
+//                .id(newContainer.getId())
+//                .name(newContainer.getName())
+//                .description(newContainer.getDescription())
+//                .language(newContainer.getLanguage())
+//                .active(newContainer.isActive())
+//                .createDate(newContainer.getCreateDate())
+//                .lastModifiedDate(newContainer.getLastModifiedDate())
+//                .build();
+//    }
+
 
 }
