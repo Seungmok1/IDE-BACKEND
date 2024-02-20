@@ -9,4 +9,7 @@ public class CreateRoomRequestDto {
     private String password;
     private String roomType;
     private Integer maxPeople;
+    private String containerName;
+    private String containerDescription;
+    private String containerLanguage;
 }

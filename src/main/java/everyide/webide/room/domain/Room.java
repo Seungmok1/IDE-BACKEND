@@ -24,7 +24,7 @@ public class Room extends BaseEntity {
     private String password;
     private RoomType type;
     private Boolean available = true;
-    private Boolean fullRoom;
+    private String rootPath;
     @Setter
     private Integer personCnt;
     private Integer maxPeople;
@@ -36,7 +36,7 @@ public class Room extends BaseEntity {
     private List<Long> usersId;
 
     @Builder
-    public Room(Boolean isLocked, String name, String password, RoomType type, Boolean fullRoom, Boolean available, Integer personCnt, User owner, Integer maxPeople, List<Long> usersId) {
+    public Room(Boolean isLocked, String name, String password, RoomType type, Boolean available, Integer personCnt, User owner, Integer maxPeople, List<Long> usersId) {
         id = UUID.randomUUID().toString();
         this.name = name;
         this.password = password;
@@ -44,7 +44,6 @@ public class Room extends BaseEntity {
         this.type = type;
         this.personCnt = personCnt;
         this.maxPeople = maxPeople;
-        this.fullRoom = fullRoom;
         this.usersId = usersId;
         this.owner = owner;
         // 사용자가 available 값을 명시적으로 설정한 경우 해당 값을 사용
@@ -68,11 +67,11 @@ public class Room extends BaseEntity {
         this.available = available;
     }
 
-    public void setfullRoom(Boolean fullRoom) {
-        this.fullRoom = fullRoom;
-    }
-
     public void setOwner(User owner) {
         this.owner = owner;
+    }
+
+    public void setRootPath(String path) {
+        this.rootPath = path;
     }
 }

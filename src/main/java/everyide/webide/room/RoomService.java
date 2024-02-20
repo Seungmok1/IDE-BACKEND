@@ -3,11 +3,16 @@ package everyide.webide.room;
 import everyide.webide.config.auth.exception.RoomDestroyException;
 import everyide.webide.container.ContainerRepository;
 import everyide.webide.container.domain.Container;
+import everyide.webide.fileSystem.DirectoryService;
+import everyide.webide.fileSystem.FileService;
+import everyide.webide.fileSystem.domain.Directory;
 import everyide.webide.room.domain.*;
 import everyide.webide.room.domain.dto.RoomFixDto;
 import everyide.webide.user.UserRepository;
 import everyide.webide.user.domain.User;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -17,13 +22,18 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RoomService {
 
+    @Value("${file.basePath}")
+    private String basePath;
     private final RoomRepository roomRepository;
     private final ContainerRepository containerRepository;
     private final UserRepository userRepository;
+    private final DirectoryService directoryService;
+    private final FileService fileService;
 
     public Room create(CreateRoomRequestDto requestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -31,26 +41,46 @@ public class RoomService {
         Optional<User> byEmail = userRepository.findByEmail(email);
         User user = byEmail.orElseThrow();
 
+
+        // 1. 방생성
         Room room = Room.builder()
                 .name(requestDto.getName())
                 .isLocked(requestDto.getIsLocked())
                 .password(requestDto.getPassword())
                 .type(RoomType.valueOf(requestDto.getRoomType()))
-                .maxPeople(requestDto.getMaxPeople()) // 최대 입장 허용 인원을 프론트에서 막을지.. 백에서도 막아야되는지..?
+                .maxPeople(requestDto.getMaxPeople())
                 .usersId(new ArrayList<>())
-                .fullRoom(false)
                 .owner(user)
-                .personCnt(1)
                 .build();
-        Container container = Container.builder()
-                .name(room.getName())
-                .room(room)
+
+
+        // 2. 방 디렉토리 생성 (방 아이디 이름으로)
+        Directory rootDirectory = directoryService.createRootDirectory(room.getId());
+        if (rootDirectory != null) {
+            room.setRootPath(basePath + room.getId());
+            log.info("방 디렉토리 생성 완료");
+        } else {
+            log.info("루트 디렉토리 생성불가");
+        }
+
+
+        // 3. 컨테이너 생성
+        String path = basePath + room.getId() + "/" + requestDto.getContainerName();
+
+        Container newContainer = Container.builder()
+                .name(requestDto.getContainerName())
+                .description(requestDto.getContainerDescription())
+                .path(path)
+                .language(requestDto.getContainerLanguage())
                 .build();
+
+        newContainer.setRoom(room);
+        containerRepository.save(newContainer);
+        fileService.createDefaultFile(path, requestDto.getContainerLanguage());
 
         room.getUsersId().add(user.getId());
 
         roomRepository.save(room);
-        containerRepository.save(container);
 
         return room;
     }
@@ -68,7 +98,6 @@ public class RoomService {
         // 1. 만약 현재인원과 총 인원이 같으면 들어갈 수 없다. 현재 인원은 무조건 총 인원보다 작아야 한다.
         //    만약 그렇지 않다면 예외처리
         if (room.getPersonCnt().equals(room.getMaxPeople())) {
-            room.setfullRoom(true);
             throw new RuntimeException("너는 우리와 함께 할 수 없어");
         }
 
@@ -76,11 +105,10 @@ public class RoomService {
         String email = authentication.getName(); // JWT에서 사용자의 이메일 가져오기
         Optional<User> byEmail = userRepository.findByEmail(email);
         User user = byEmail.orElseThrow();
-
-        // 2. 예외에 걸리지 않았다고 할 때, 현재 인원수에 1을 더한다 (내가 들어갔으니까)
-        //    그리고 입장한 아이디를 usersId에 추가한다.
-        room.setPersonCnt(room.getPersonCnt() + 1);
-        room.getUsersId().add(user.getId()); // userId는 메소드 인자로 받거나 다른 방식으로 결정해야 함
+        // 유저의 룸 리스트에 룸 아이디 추가
+        user.getRoomsList().add(roomId);
+        // 입장한 아이디를 usersId에 추가한다.
+        room.getUsersId().add(user.getId());
 
         // 데이터베이스 업데이트 (room 엔티티 저장)
         roomRepository.save(room);
@@ -111,7 +139,7 @@ public class RoomService {
         });
     }
 
-    public void exitRoom(String roomId) {
+    public void leaveRoom(String roomId) {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
@@ -120,24 +148,6 @@ public class RoomService {
         Optional<User> byEmail = userRepository.findByEmail(email);
         User user = byEmail.orElseThrow();
 
-        if (room.getFullRoom()) {
-            room.setfullRoom(false);
-        }
-        // exitRoom을 실행하는 user가 Owner라면 방은 폭파됨. 참가 인원은 모두 삭제되고
-        // UsersId에 있는 모든 유저들을 로비로 리다이렉트 해야함
-        if(user.equals(room.getOwner())) {
-            room.setAvailable(false);
-            room.getUsersId().clear();
-            room.setPersonCnt(0);
-            room.setOwner(null);
-            user.setRoom(null);
-            roomRepository.save(room);
-            userRepository.save(user);
-            throw new RoomDestroyException("도비는 이제 자유에요.");
-        } else {
-            room.setPersonCnt(room.getPersonCnt() - 1);
-            room.getUsersId().remove(user.getId());
-        }
 
         roomRepository.save(room);
     }
@@ -168,7 +178,6 @@ public class RoomService {
                 .isLocked(room.getIsLocked())
                 .type(room.getType())
                 .available(room.getAvailable())
-                .fullRoom(room.getFullRoom())
                 .personCnt(room.getPersonCnt())
                 .maxPeople(room.getMaxPeople())
                 .ownerName(Optional.ofNullable(room.getOwner())

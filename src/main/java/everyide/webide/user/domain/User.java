@@ -49,6 +49,9 @@ public class User extends BaseEntity {
     @OneToOne
     private Room room;
 
+    @ElementCollection
+    private List<String> roomsList;
+
     @Builder
     public User(Long id, String name, String picture, String email, String password, String role, String refreshToken, AuthProvider provider, String providerId) {
         this.id = id;

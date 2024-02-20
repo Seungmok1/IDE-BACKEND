@@ -37,9 +37,9 @@ public class RoomController {
     }
     // 방에 들어갔을때 어떤 것들을 띄워야하는지 상의하기 일단 방만 띄움
 
-    @GetMapping("/api/community/{roomId}/exit")
+    @GetMapping("/api/community/{roomId}/leave")
     public void communityOut(@PathVariable("roomId") String roomId) {
-        roomService.exitRoom(roomId);
+        roomService.leaveRoom(roomId);
     }
 
     @GetMapping("/api/communities/search")
