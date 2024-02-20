@@ -160,6 +160,7 @@ public class FileService {
 
             everyide.webide.fileSystem.domain.File defaultFile = everyide.webide.fileSystem.domain.File.builder()
                     .path(path + "/" + fileName)
+                    .content(defaultContent)
                     .build();
             fileRepository.save(defaultFile);
 
@@ -169,7 +170,7 @@ public class FileService {
 
         File readme = new File(path, "README.md");
         try (FileWriter writer = new FileWriter(readme)) {
-            writer.write("# 컨테이너 이름\n" +
+            String content = "# 컨테이너 이름\n" +
                     "\n" +
                     "## 개요\n" +
                     "\n" +
@@ -181,12 +182,15 @@ public class FileService {
                     "\n" +
                     "### 사전 요구 사항\n" +
                     "\n" +
-                    "컨테이너를 사용하기 위해 필요한 도구, 라이브러리, 환경 설정 등을 나열합니다.");
+                    "컨테이너를 사용하기 위해 필요한 도구, 라이브러리, 환경 설정 등을 나열합니다.";
+            writer.write(content);
             writer.flush();
 
             everyide.webide.fileSystem.domain.File readmeFile = everyide.webide.fileSystem.domain.File.builder()
                     .path(path + "/README.md")
+                    .content(content)
                     .build();
+
             fileRepository.save(readmeFile);
 
         } catch (IOException e) {
