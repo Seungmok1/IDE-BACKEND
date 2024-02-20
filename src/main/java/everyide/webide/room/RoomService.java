@@ -146,7 +146,8 @@ public class RoomService {
         User user = byEmail.orElseThrow();
 
         if (user.getId().equals(room.getOwner().getId())) {
-            room.setOwner(userRepository.findById(room.getUsersId().getFirst()).orElseThrow());
+            User user1 = userRepository.findById(room.getUsersId().get(0)).orElseThrow();
+            room.setOwner(user1);
         }
 
         room.getUsersId().remove(user.getId());
