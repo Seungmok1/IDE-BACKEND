@@ -52,11 +52,11 @@ public class TerminalService {
         BufferedReader inputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         TerminalExecuteResponseDto responseDto = new TerminalExecuteResponseDto();
         if (process.waitFor() == 0) {
-            responseDto.setContent(inputReader.lines().collect(Collectors.joining("\n")));
+            responseDto.setContent(inputReader.lines().collect(Collectors.joining("\t")));
             responseDto.setSuccess(true);
         } else {
             BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-            responseDto.setContent("ERROR:" + errorReader.lines().collect(Collectors.joining("\n")));
+            responseDto.setContent("ERROR:" + errorReader.lines().collect(Collectors.joining("\t")));
             responseDto.setSuccess(false);
         }
         responseDto.setPath(requestDto.getPath());
