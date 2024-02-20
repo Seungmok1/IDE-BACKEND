@@ -53,4 +53,11 @@ public class File extends BaseEntity {
         this.content = newContent;
         return this;
     }
+
+    @PrePersist
+    private void prePersist() {
+        if (this.id == null) { // ID가 설정되지 않은 경우에만 새 UUID 생성
+            this.id = UUID.randomUUID().toString();
+        }
+    }
 }
