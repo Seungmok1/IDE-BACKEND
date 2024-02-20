@@ -30,10 +30,8 @@ public class RoomService {
     @Value("${file.basePath}")
     private String basePath;
     private final RoomRepository roomRepository;
-    private final ContainerRepository containerRepository;
     private final UserRepository userRepository;
     private final DirectoryService directoryService;
-    private final FileService fileService;
 
     public Room create(CreateRoomRequestDto requestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -65,22 +63,22 @@ public class RoomService {
 
 
         // 3. 컨테이너 생성
-        String path = basePath + room.getId() + "/" + requestDto.getContainerName();
-
-        Container newContainer = Container.builder()
-                .name(requestDto.getContainerName())
-                .description(requestDto.getContainerDescription())
-                .path(path)
-                .language(requestDto.getContainerLanguage())
-                .build();
-
-        newContainer.setRoom(room);
-        containerRepository.save(newContainer);
-        fileService.createDefaultFile(path, requestDto.getContainerLanguage());
-
-        room.getUsersId().add(user.getId());
-
-        roomRepository.save(room);
+//        String path = basePath + room.getId() + "/" + requestDto.getContainerName();
+//
+//        Container newContainer = Container.builder()
+//                .name(requestDto.getContainerName())
+//                .description(requestDto.getContainerDescription())
+//                .path(path)
+//                .language(requestDto.getContainerLanguage())
+//                .build();
+//
+//        newContainer.setRoom(room);
+//        containerRepository.save(newContainer);
+//        fileService.createDefaultFile(path, requestDto.getContainerLanguage());
+//
+//        room.getUsersId().add(user.getId());
+//
+//        roomRepository.save(room);
 
         return room;
     }
@@ -95,16 +93,15 @@ public class RoomService {
     public Room enteredRoom(String roomId) {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
-        // 1. 만약 현재인원과 총 인원이 같으면 들어갈 수 없다. 현재 인원은 무조건 총 인원보다 작아야 한다.
-        //    만약 그렇지 않다면 예외처리
-        if (room.getPersonCnt().equals(room.getMaxPeople())) {
-            throw new RuntimeException("너는 우리와 함께 할 수 없어");
-        }
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName(); // JWT에서 사용자의 이메일 가져오기
         Optional<User> byEmail = userRepository.findByEmail(email);
         User user = byEmail.orElseThrow();
+
+        if (room.getUsersId().contains(user.getId())) {
+            return room;
+        }
         // 유저의 룸 리스트에 룸 아이디 추가
         user.getRoomsList().add(roomId);
         // 입장한 아이디를 usersId에 추가한다.
@@ -148,24 +145,56 @@ public class RoomService {
         Optional<User> byEmail = userRepository.findByEmail(email);
         User user = byEmail.orElseThrow();
 
+        if (user.getId().equals(room.getOwner().getId())) {
+            room.setOwner(userRepository.findById(room.getUsersId().getFirst()).orElseThrow());
+        }
 
+        room.getUsersId().remove(user.getId());
+
+        if (room.getUsersId().isEmpty()) {
+            room.setAvailable(false);
+        }
+        user.getRoomsList().remove(roomId);
+
+        userRepository.save(user);
         roomRepository.save(room);
     }
 
-    public List<RoomResponseDto> searchRooms(String name, RoomType type) {
+    public List<RoomResponseDto> searchRooms(String name, RoomType type, Boolean group) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName(); // JWT에서 사용자의 이메일 가져오기
+        Optional<User> byEmail = userRepository.findByEmail(email);
+        User user = byEmail.orElseThrow();
+
         if (name == null) {
-            return roomRepository.findAllByType(type)
-                    .stream()
-                    .map(this::toRoomResponseDto)
-                    .collect(Collectors.toList());
+            if (type == null && group) {
+                return roomRepository.findAllByUsersIdContains(user.getId())
+                        .stream()
+                        .map(this::toRoomResponseDto)
+                        .collect(Collectors.toList());
+            } else if (type != null & !group) {
+                return roomRepository.findAllByType(type)
+                        .stream()
+                        .map(this::toRoomResponseDto)
+                        .collect(Collectors.toList());
+            }
         }
-        if (type == null) {
-            return roomRepository.findAllByNameContaining(name)
-                    .stream()
-                    .map(this::toRoomResponseDto)
-                    .collect(Collectors.toList());
+        if (name != null) {
+            if (type == null && group) {
+                return roomRepository.findAllByNameContaining(name)
+                        .stream()
+                        .filter(room -> room.getUsersId().contains(user.getId()))
+                        .map(this::toRoomResponseDto)
+                        .collect(Collectors.toList());
+            }  else if (type != null & !group) {
+                return roomRepository.findAllByNameContainingAndType(name, type)
+                        .stream()
+                        .map(this::toRoomResponseDto)
+                        .collect(Collectors.toList());
+            }
         }
-        return roomRepository.findAllByNameContainingAndType(name, type)
+        return roomRepository.findAll()
                 .stream()
                 .map(this::toRoomResponseDto)
                 .collect(Collectors.toList());
@@ -178,7 +207,6 @@ public class RoomService {
                 .isLocked(room.getIsLocked())
                 .type(room.getType())
                 .available(room.getAvailable())
-                .personCnt(room.getPersonCnt())
                 .maxPeople(room.getMaxPeople())
                 .ownerName(Optional.ofNullable(room.getOwner())
                         .map(User::getName)

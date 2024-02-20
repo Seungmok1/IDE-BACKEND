@@ -45,7 +45,8 @@ public class RoomController {
     @GetMapping("/api/communities/search")
     public ResponseEntity<?> searchRooms(
             @RequestParam(value = "name", required = false) String name,
-            @RequestParam(value = "type", required = false) RoomType type) {
-        return ResponseEntity.ok(roomService.searchRooms(name, type));
+            @RequestParam(value = "type", required = false) RoomType type,
+            @RequestParam(value = "group") Boolean group) {
+        return ResponseEntity.ok(roomService.searchRooms(name, type, group));
     }
 }

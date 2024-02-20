@@ -24,4 +24,7 @@ public interface RoomRepository extends JpaRepository<Room, String> {
 
     @Query("SELECT c.room FROM Container c WHERE c.id = :containerId")
     Room findRoomByContainerId(@Param("containerId") String containerId);
+
+    @Query("SELECT r FROM Room r JOIN r.usersId u WHERE u = :userId")
+    List<Room> findAllByUsersIdContains(@Param("userId") Long userId);
 }
