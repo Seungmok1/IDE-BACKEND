@@ -76,9 +76,8 @@ public class RoomService {
 //        containerRepository.save(newContainer);
 //        fileService.createDefaultFile(path, requestDto.getContainerLanguage());
 //
-//        room.getUsersId().add(user.getId());
-//
-//        roomRepository.save(room);
+        room.getUsersId().add(user.getId());
+        roomRepository.save(room);
 
         return room;
     }
@@ -90,9 +89,33 @@ public class RoomService {
                 .collect(Collectors.toList());
     }
 
-    public Room enteredRoom(String roomId) {
+    public Room enteredRoom(String roomId, String password) {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
+
+        if (room.getIsLocked()) {
+            if (!password.equals(room.getPassword())) {
+                throw new RuntimeException("비밀번호가 틀렸습니다.");
+            }
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName(); // JWT에서 사용자의 이메일 가져오기
+            Optional<User> byEmail = userRepository.findByEmail(email);
+            User user = byEmail.orElseThrow();
+
+            if (room.getUsersId().contains(user.getId())) {
+                return room;
+            }
+            // 유저의 룸 리스트에 룸 아이디 추가
+            user.getRoomsList().add(roomId);
+            // 입장한 아이디를 usersId에 추가한다.
+            room.getUsersId().add(user.getId());
+
+            // 데이터베이스 업데이트 (room 엔티티 저장)
+            roomRepository.save(room);
+
+            // 나머지는 그냥 반환해준다
+            return room;
+        }
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName(); // JWT에서 사용자의 이메일 가져오기
@@ -110,7 +133,7 @@ public class RoomService {
         // 데이터베이스 업데이트 (room 엔티티 저장)
         roomRepository.save(room);
 
-        // 3. 나머지는 그냥 반환해준다
+        // 나머지는 그냥 반환해준다
         return room;
     }
 
@@ -209,6 +232,7 @@ public class RoomService {
                 .type(room.getType())
                 .available(room.getAvailable())
                 .maxPeople(room.getMaxPeople())
+                .usersCnt(room.getUsersId().size())
                 .ownerName(Optional.ofNullable(room.getOwner())
                         .map(User::getName)
                         .orElse("Unknown"))

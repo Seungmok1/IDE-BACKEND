@@ -31,8 +31,9 @@ public class RoomController {
     }
 
     @GetMapping("/api/community/{roomId}")
-    public ResponseEntity<?> enterRoom(@PathVariable("roomId") String roomId) {
-        Room room = roomService.enteredRoom(roomId);
+    public ResponseEntity<?> enterRoom(@PathVariable("roomId") String roomId,
+                                       @RequestParam(value = "password", required = false) String password) {
+        Room room = roomService.enteredRoom(roomId, password);
         return ResponseEntity.ok(room);
     }
     // 방에 들어갔을때 어떤 것들을 띄워야하는지 상의하기 일단 방만 띄움
