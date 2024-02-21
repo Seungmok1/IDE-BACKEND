@@ -59,8 +59,8 @@ public class ContainerController {
         }
     }
 
-    @PostMapping("api/containers/copy")
-    public ResponseEntity<?> copyContainers(@RequestBody CopyContainerRequest copyContainerRequest) {
-        return ResponseEntity.ok(containerService.copyContainer(copyContainerRequest));
+    @PostMapping("api/containers/{containerId}")
+    public ResponseEntity<?> copyContainers(@PathVariable("containerId") Long id, @RequestBody CopyContainerRequest copyContainerRequest) {
+        return ResponseEntity.ok(containerService.copyContainer(id, copyContainerRequest));
     }
 }
