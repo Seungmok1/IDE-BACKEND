@@ -149,8 +149,12 @@ public class ContainerService {
         if (container.exists()) {
             Container findContainer = containerRepository.findByPath(path)
                     .orElseThrow(() -> new EntityNotFoundException("Container not found."));
+            if (deleteContainerRequest.getEmail().contains("@")) {
+                findContainer.getUser().removeContainer(findContainer);
+            } else {
+                findContainer.getRoom().removeContainer(findContainer);
+            }
 
-            findContainer.getUser().removeContainer(findContainer);
             containerRepository.delete(findContainer);
             directoryService.deleteDirectory(new DeleteDirectoryRequest(deleteContainerRequest.getEmail(), "/" + deleteContainerRequest.getName()));
 
