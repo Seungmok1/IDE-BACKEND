@@ -1,13 +1,14 @@
-package everyide.webide.websocket.domain;
+package everyide.webide.chat.domain;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 @Getter
+@Builder
 @AllArgsConstructor
-public class UserSession {
+public class MessageResponseDto {
     private Long userId;
     private String name;
-    private String email;
-    private String containerId;
+    private String content;
 }

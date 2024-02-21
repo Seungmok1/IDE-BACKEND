@@ -23,7 +23,7 @@
         stompClient = Stomp.over(socket);
         stompClient.connect({}, function (frame) {
             console.log('Connected: ' + frame);
-            stompClient.subscribe('/topic/room/' + roomId + "/chat", function (message) {
+            stompClient.subscribe('/topic/containerId/' + roomId + "/chat", function (message) {
                 showMessage(JSON.parse(message.body).content);
             });
         });
@@ -34,12 +34,10 @@
         if(messageContent && stompClient) {
             var chatMessage = {
                 content: messageContent,
-                roomId: roomId,
-                contentType: "TEXT",
-                senderId: 1
+                userId: 1
                 // Adjust these fields according to your application's requirements
             };
-            stompClient.send("/app/room/" + roomId + "/chat", {}, JSON.stringify(chatMessage));
+            stompClient.send("/app/containerId/" + roomId + "/chat", {}, JSON.stringify(chatMessage));
             document.getElementById('messageContent').value = '';
         }
     }

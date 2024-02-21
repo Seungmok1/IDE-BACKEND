@@ -1,6 +1,7 @@
 package everyide.webide.chat.domain;
 
 import everyide.webide.BaseEntity;
+import everyide.webide.container.domain.Container;
 import everyide.webide.room.domain.Room;
 import everyide.webide.user.domain.User;
 import jakarta.persistence.*;
@@ -19,7 +20,7 @@ public class Chat extends BaseEntity {
     private Long id;
     private String name;
     @OneToOne
-    private Room room;
+    private Container container;
     @OneToMany
     private List<User> users;
 }

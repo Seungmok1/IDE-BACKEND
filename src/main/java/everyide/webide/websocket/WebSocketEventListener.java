@@ -14,20 +14,18 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 @RequiredArgsConstructor
 public class WebSocketEventListener {
 
-    private final WebSocketUserSessionMapper webSocketUserSessionMapper;
-    private final WebSocketRoomUserCountMapper webSocketRoomUserCountMapper;
+    private final WebSocketRoomUserSessionMapper webSocketRoomUserSessionMapper;
     private final UserStateController userStateController;
 
     @EventListener
     public void disconnect(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+        String containerId = headerAccessor.getFirstNativeHeader("projectId");
         String sessionId = headerAccessor.getUser().getName();
         log.info("퇴장 세션={}", sessionId);
 
-        UserSession userSession = webSocketUserSessionMapper.remove(sessionId);
-        webSocketRoomUserCountMapper.decrease(String.valueOf(userSession.getContainerId()));
+        webSocketRoomUserSessionMapper.removeSession(containerId, sessionId);
 
-        //TODO 세션에서 roomId를 가져와서 수정된 정보 브로드캐스팅하기
-        userStateController.sendUserState(userSession);
+        userStateController.sendUserState(containerId);
     }
 }

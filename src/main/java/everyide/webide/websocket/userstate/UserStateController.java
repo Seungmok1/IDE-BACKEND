@@ -1,22 +1,24 @@
 package everyide.webide.websocket.userstate;
 
+import everyide.webide.chat.MessageRepository;
+import everyide.webide.chat.domain.MessageResponseDto;
 import everyide.webide.config.auth.jwt.JwtTokenProvider;
-import everyide.webide.room.RoomRepository;
 import everyide.webide.user.UserRepository;
 import everyide.webide.user.domain.User;
-import everyide.webide.websocket.WebSocketRoomUserCountMapper;
-import everyide.webide.websocket.WebSocketUserSessionMapper;
+import everyide.webide.websocket.WebSocketRoomUserSessionMapper;
+import everyide.webide.websocket.domain.EnterResponseDto;
 import everyide.webide.websocket.domain.UserSession;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
-import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Controller
@@ -25,34 +27,42 @@ public class UserStateController {
 
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
-    private final WebSocketRoomUserCountMapper webSocketRoomUserCountMapper;
-    private final WebSocketUserSessionMapper webSocketUserSessionMapper;
+    private final WebSocketRoomUserSessionMapper webSocketRoomUserSessionMapper;
+    private final MessageRepository messageRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
-    @SubscribeMapping("/room/{containerId}/enter")
+    @SubscribeMapping("/container/{containerId}/enter")
     public void enter(SimpMessageHeaderAccessor headerAccessor, @DestinationVariable String containerId) {
         String sessionId = headerAccessor.getUser().getName();
-        webSocketUserSessionMapper.put(sessionId, createUserSession(headerAccessor));
+        webSocketRoomUserSessionMapper.putSession(
+                containerId, sessionId, createUserSession(headerAccessor, containerId)
+        );
 
-        boolean increased = webSocketRoomUserCountMapper.increase(getHeaderValue(headerAccessor, "projectId"));
-        if (!increased) {
-            log.warn("프로젝트 ID={}에 대한 최대 사용자 수에 도달했습니다. 세션 ID={}", getHeaderValue(headerAccessor, "projectId"), sessionId);
-            messagingTemplate.convertAndSendToUser(sessionId, "/user/queue/disconnect", "입장불가");
-        } else {
-            sendUserState(webSocketUserSessionMapper.get(sessionId));
-            log.info("입장 세션={}", sessionId);
-        }
+        sendUserState(containerId);
+        log.info("입장 세션={}", sessionId);
     }
 
     // 유저가 입장이나 퇴장할 때 수정된 유저들의 정보를 브로드캐스팅
-    public void sendUserState(UserSession userSession) {
-        messagingTemplate.convertAndSend("/topic/room/" + userSession.getContainerId() + "/state", userSession);
+    public void sendUserState(String containerId) {
+        messagingTemplate.convertAndSend(
+                "/topic/room/" + containerId + "/state",
+                new EnterResponseDto(
+                        webSocketRoomUserSessionMapper.getAllSessionsInContainer(containerId),
+                        messageRepository.findTop10ByContainerIdOrderBySendDateDesc(containerId)
+                                .stream()
+                                .map((message -> MessageResponseDto.builder()
+                                        .userId(message.getUserId())
+                                        .name(message.getUserName())
+                                        .content(message.getContent())
+                                        .build()))
+                                .collect(Collectors.toList())
+                        )
+                );
     }
 
-    private UserSession createUserSession(SimpMessageHeaderAccessor headerAccessor) {
+    private UserSession createUserSession(SimpMessageHeaderAccessor headerAccessor, String containerId) {
         String token = getHeaderValue(headerAccessor, "Authorization").substring(7);
         User user = getUserFromToken(token);
-        Long containerId = Long.valueOf(getHeaderValue(headerAccessor, "projectId"));
         return new UserSession(user.getId(), user.getName(), user.getEmail(), containerId);
     }
 
