@@ -1,5 +1,6 @@
 package everyide.webide.room.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import everyide.webide.BaseEntity;
 import everyide.webide.container.domain.Container;
 import everyide.webide.user.domain.User;
@@ -28,11 +29,12 @@ public class Room extends BaseEntity {
     private Boolean available = true;
     private String rootPath;
     @Setter
-    private Integer personCnt;
     private Integer maxPeople;
 
-    @OneToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     private User owner;
+
     @OneToMany(mappedBy = "room")
     private List<Container> containers = new ArrayList<>();
 
@@ -40,13 +42,12 @@ public class Room extends BaseEntity {
     private List<Long> usersId;
 
     @Builder
-    public Room(Boolean isLocked, String name, String password, RoomType type, Boolean available, Integer personCnt, User owner, Integer maxPeople, List<Long> usersId) {
+    public Room(Boolean isLocked, String name, String password, RoomType type, Boolean available, User owner, Integer maxPeople, List<Long> usersId) {
         id = UUID.randomUUID().toString();
         this.name = name;
         this.password = password;
         this.isLocked = isLocked;
         this.type = type;
-        this.personCnt = personCnt;
         this.maxPeople = maxPeople;
         this.usersId = usersId;
         this.owner = owner;

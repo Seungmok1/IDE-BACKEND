@@ -10,21 +10,19 @@ public class RoomResponseDto {
     private Boolean isLocked;
     private RoomType type;
     private Boolean available;
-    private Boolean fullRoom;
     private String ownerName;
-    private Integer personCnt;
     private Integer maxPeople;
+    private Integer usersCnt;
 
     @Builder
-    public RoomResponseDto(String roomId, String name, Boolean isLocked, RoomType type, Boolean available, Boolean fullRoom, String ownerName, Integer personCnt, Integer maxPeople) {
+    public RoomResponseDto(String roomId, String name, Boolean isLocked, RoomType type, Boolean available, String ownerName, Integer usersCnt, Integer maxPeople) {
         this.roomId = roomId;
         this.name = name;
         this.isLocked = isLocked;
         this.type = type;
         this.available = available;
-        this.fullRoom = fullRoom;
         this.ownerName = ownerName;
-        this.personCnt = personCnt;
+        this.usersCnt = usersCnt;
         this.maxPeople = maxPeople;
     }
 }
