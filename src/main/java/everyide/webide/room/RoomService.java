@@ -1,6 +1,8 @@
 package everyide.webide.room;
 
+import everyide.webide.config.auth.exception.NoRoomException;
 import everyide.webide.config.auth.exception.RoomDestroyException;
+import everyide.webide.config.auth.exception.ValidateRoomException;
 import everyide.webide.container.ContainerRepository;
 import everyide.webide.container.domain.Container;
 import everyide.webide.fileSystem.DirectoryService;
@@ -73,7 +75,7 @@ public class RoomService {
 
     public EnterRoomResponseDto enteredRoom(String roomId, String password) {
         Room room = roomRepository.findById(roomId)
-                .orElseThrow(() -> new RuntimeException("Room not found"));
+                .orElseThrow(() -> new NoRoomException("Room not found"));
 
         // 비밀번호가 설정된 방인 경우, 비밀번호 확인
         validateRoomAccess(room, password);
@@ -92,7 +94,7 @@ public class RoomService {
 
     private void validateRoomAccess(Room room, String password) {
         if (room.getIsLocked() && !password.equals(room.getPassword())) {
-            throw new RuntimeException("비밀번호가 틀렸습니다.");
+            throw new ValidateRoomException("비밀번호가 틀렸습니다.");
         }
     }
 
