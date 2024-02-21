@@ -46,8 +46,8 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user")
     private List<Container> containers = new ArrayList<>();
 
-    @OneToOne
-    private Room room;
+    @OneToMany(mappedBy = "owner")
+    private List<Room> room;
 
     @ElementCollection
     private List<String> roomsList;
@@ -99,7 +99,7 @@ public class User extends BaseEntity {
         this.containers.remove(container);
     }
 
-    public void setRoom(Room room) {
+    public void setRoom(List<Room> room) {
         this.room = room;
     }
 

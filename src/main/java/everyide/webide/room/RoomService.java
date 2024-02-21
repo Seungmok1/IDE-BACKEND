@@ -7,6 +7,7 @@ import everyide.webide.fileSystem.DirectoryService;
 import everyide.webide.fileSystem.FileService;
 import everyide.webide.fileSystem.domain.Directory;
 import everyide.webide.room.domain.*;
+import everyide.webide.room.domain.dto.EnterRoomResponseDto;
 import everyide.webide.room.domain.dto.RoomFixDto;
 import everyide.webide.user.UserRepository;
 import everyide.webide.user.domain.User;
@@ -34,11 +35,7 @@ public class RoomService {
     private final DirectoryService directoryService;
 
     public Room create(CreateRoomRequestDto requestDto) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName(); // JWT에서 사용자의 이메일 가져오기
-        Optional<User> byEmail = userRepository.findByEmail(email);
-        User user = byEmail.orElseThrow();
-
+        User currentUser = getCurrentUser();
 
         // 1. 방생성
         Room room = Room.builder()
@@ -48,7 +45,7 @@ public class RoomService {
                 .type(RoomType.valueOf(requestDto.getRoomType()))
                 .maxPeople(requestDto.getMaxPeople())
                 .usersId(new ArrayList<>())
-                .owner(user)
+                .owner(currentUser)
                 .build();
 
 
@@ -61,22 +58,7 @@ public class RoomService {
             log.info("루트 디렉토리 생성불가");
         }
 
-
-        // 3. 컨테이너 생성
-//        String path = basePath + room.getId() + "/" + requestDto.getContainerName();
-//
-//        Container newContainer = Container.builder()
-//                .name(requestDto.getContainerName())
-//                .description(requestDto.getContainerDescription())
-//                .path(path)
-//                .language(requestDto.getContainerLanguage())
-//                .build();
-//
-//        newContainer.setRoom(room);
-//        containerRepository.save(newContainer);
-//        fileService.createDefaultFile(path, requestDto.getContainerLanguage());
-//
-        room.getUsersId().add(user.getId());
+        room.getUsersId().add(currentUser.getId());
         roomRepository.save(room);
 
         return room;
@@ -89,84 +71,97 @@ public class RoomService {
                 .collect(Collectors.toList());
     }
 
-    public Room enteredRoom(String roomId, String password) {
+    public EnterRoomResponseDto enteredRoom(String roomId, String password) {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
-        if (room.getIsLocked()) {
-            if (!password.equals(room.getPassword())) {
-                throw new RuntimeException("비밀번호가 틀렸습니다.");
-            }
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String email = authentication.getName(); // JWT에서 사용자의 이메일 가져오기
-            Optional<User> byEmail = userRepository.findByEmail(email);
-            User user = byEmail.orElseThrow();
+        // 비밀번호가 설정된 방인 경우, 비밀번호 확인
+        validateRoomAccess(room, password);
 
-            if (room.getUsersId().contains(user.getId())) {
-                return room;
-            }
-            // 유저의 룸 리스트에 룸 아이디 추가
-            user.getRoomsList().add(roomId);
-            // 입장한 아이디를 usersId에 추가한다.
+        User currentUser = getCurrentUser();
+
+        // 현재 사용자가 방의 사용자 목록에 없다면 추가
+        addUserToRoomIfNotPresent(room, currentUser);
+
+        // 사용자 이름 리스트 생성
+        List<String> usersNames = getUsersNamesFromRoom(room);
+
+        // 응답 객체 생성 및 반환
+        return buildEnterRoomResponse(room, usersNames);
+    }
+
+    private void validateRoomAccess(Room room, String password) {
+        if (room.getIsLocked() && !password.equals(room.getPassword())) {
+            throw new RuntimeException("비밀번호가 틀렸습니다.");
+        }
+    }
+
+    private User getCurrentUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    private void addUserToRoomIfNotPresent(Room room, User user) {
+        if (!room.getUsersId().contains(user.getId())) {
             room.getUsersId().add(user.getId());
-
-            // 데이터베이스 업데이트 (room 엔티티 저장)
+            user.getRoomsList().add(room.getId()); // 유저의 룸 리스트에 추가
             roomRepository.save(room);
-
-            // 나머지는 그냥 반환해준다
-            return room;
         }
+    }
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName(); // JWT에서 사용자의 이메일 가져오기
-        Optional<User> byEmail = userRepository.findByEmail(email);
-        User user = byEmail.orElseThrow();
+    private List<String> getUsersNamesFromRoom(Room room) {
+        return room.getUsersId().stream()
+                .map(userRepository::findById)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(User::getName)
+                .collect(Collectors.toList());
+    }
 
-        if (room.getUsersId().contains(user.getId())) {
-            return room;
-        }
-        // 유저의 룸 리스트에 룸 아이디 추가
-        user.getRoomsList().add(roomId);
-        // 입장한 아이디를 usersId에 추가한다.
-        room.getUsersId().add(user.getId());
-
-        // 데이터베이스 업데이트 (room 엔티티 저장)
-        roomRepository.save(room);
-
-        // 나머지는 그냥 반환해준다
-        return room;
+    private EnterRoomResponseDto buildEnterRoomResponse(Room room, List<String> usersNames) {
+        return EnterRoomResponseDto.builder()
+                .room(room)
+                .usersName(usersNames)
+                .ownerId(room.getOwner().getId())
+                .build();
     }
 
     public void fixRoom(String roomId, RoomFixDto roomFixDto) {
-        roomRepository.findById(roomId).ifPresent(room -> {
-            // name 업데이트 (null이 아닌 경우에만)
-            if (roomFixDto.getName() != null) {
-                room.setName(roomFixDto.getName());
-            }
+        User user = getCurrentUser();
+        Optional<Room> byId = roomRepository.findById(roomId);
+        Room room = byId.orElseThrow();
 
-            // password와 isLocked 업데이트
-            if (roomFixDto.getPassword() != null) {
-                room.setPassword(roomFixDto.getPassword());
-                room.setIsLocked(true);
-            } else if (roomFixDto.getIsLocked() != null && !roomFixDto.getIsLocked()) {
-                // password가 null이고, isLocked가 명시적으로 false로 설정된 경우
-                room.setIsLocked(false);
-                room.setPassword(null); // isLocked가 false일 때 password도 null로 설정
-            }
+        if (user.equals(room.getOwner())) {
+            roomRepository.findById(roomId).ifPresent(r -> {
+                // name 업데이트 (null이 아닌 경우에만)
+                if (roomFixDto.getName() != null) {
+                    room.setName(roomFixDto.getName());
+                }
 
-            // 변경사항을 데이터베이스에 저장
-            roomRepository.save(room);
-        });
+                // password와 isLocked 업데이트
+                if (roomFixDto.getPassword() != null) {
+                    room.setPassword(roomFixDto.getPassword());
+                    room.setIsLocked(true);
+                } else if (roomFixDto.getIsLocked() != null && !roomFixDto.getIsLocked()) {
+                    // password가 null이고, isLocked가 명시적으로 false로 설정된 경우
+                    room.setIsLocked(false);
+                    room.setPassword(null); // isLocked가 false일 때 password도 null로 설정
+                }
+
+                // 변경사항을 데이터베이스에 저장
+                roomRepository.save(r);
+            });
+        } else {
+            throw new RuntimeException("방장이 아닌 사람은 방을 수정 할 수 없습니다.");
+        }
+
     }
 
     public void leaveRoom(String roomId) {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName(); // JWT에서 사용자의 이메일 가져오기
-        Optional<User> byEmail = userRepository.findByEmail(email);
-        User user = byEmail.orElseThrow();
+        User user = getCurrentUser();
 
         if (user.getId().equals(room.getOwner().getId())) {
             User user1 = userRepository.findById(room.getUsersId().get(0)).orElseThrow();
@@ -186,10 +181,7 @@ public class RoomService {
 
     public List<RoomResponseDto> searchRooms(String name, RoomType type, Boolean group) {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName(); // JWT에서 사용자의 이메일 가져오기
-        Optional<User> byEmail = userRepository.findByEmail(email);
-        User user = byEmail.orElseThrow();
+        User user = getCurrentUser();
 
         if (name == null) {
             if (type == null && group) {

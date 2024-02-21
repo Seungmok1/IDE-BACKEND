@@ -1,5 +1,6 @@
 package everyide.webide.room.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import everyide.webide.BaseEntity;
 import everyide.webide.container.domain.Container;
 import everyide.webide.user.domain.User;
@@ -30,8 +31,10 @@ public class Room extends BaseEntity {
     @Setter
     private Integer maxPeople;
 
-    @OneToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     private User owner;
+
     @OneToMany(mappedBy = "room")
     private List<Container> containers = new ArrayList<>();
 

@@ -3,6 +3,7 @@ package everyide.webide.room;
 import everyide.webide.room.domain.CreateRoomRequestDto;
 import everyide.webide.room.domain.Room;
 import everyide.webide.room.domain.RoomType;
+import everyide.webide.room.domain.dto.EnterRoomResponseDto;
 import everyide.webide.room.domain.dto.RoomFixDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,14 +27,15 @@ public class RoomController {
     }
 
     @PatchMapping("/api/community/{roomId}/settings")
-    public void updateRoom(@PathVariable("roomId") String roomId, @RequestBody RoomFixDto roomfixDto) {
+    public ResponseEntity<?> updateRoom(@PathVariable("roomId") String roomId, @RequestBody RoomFixDto roomfixDto) {
         roomService.fixRoom(roomId, roomfixDto);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/api/community/{roomId}")
     public ResponseEntity<?> enterRoom(@PathVariable("roomId") String roomId,
                                        @RequestParam(value = "password", required = false) String password) {
-        Room room = roomService.enteredRoom(roomId, password);
+        EnterRoomResponseDto room = roomService.enteredRoom(roomId, password);
         return ResponseEntity.ok(room);
     }
     // 방에 들어갔을때 어떤 것들을 띄워야하는지 상의하기 일단 방만 띄움
