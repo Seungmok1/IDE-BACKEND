@@ -19,6 +19,7 @@ public class WebSocketRoomUserSessionMapper {
         if (isExistedContainer(containerId)) {
             roomUserSessionMap.get(containerId).put(sessionId, userSession);
         } else {
+            log.info("새로운 컨테이너={}", containerId);
             ConcurrentHashMap<String, UserSession> sessionMap = new ConcurrentHashMap<>();
             sessionMap.put(sessionId, userSession);
             roomUserSessionMap.put(containerId, sessionMap);
@@ -47,8 +48,10 @@ public class WebSocketRoomUserSessionMapper {
         return sessionMap.entrySet().size();
     }
 
-    public UserSession removeSession(String containerId, String sessionId) {
-        return roomUserSessionMap.get(containerId).remove(sessionId);
+    public UserSession removeSession(String sessionId) {
+        return roomUserSessionMap.values().stream()
+                .filter(map -> map.containsKey(sessionId))
+                .findAny().get().remove(sessionId);
     }
 
     private UserSession findSession(String containerId, String sessionId) {
