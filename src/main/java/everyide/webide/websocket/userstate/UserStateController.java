@@ -39,21 +39,21 @@ public class UserStateController {
             log.warn("프로젝트 ID={}에 대한 최대 사용자 수에 도달했습니다. 세션 ID={}", getHeaderValue(headerAccessor, "projectId"), sessionId);
             messagingTemplate.convertAndSendToUser(sessionId, "/user/queue/disconnect", "입장불가");
         } else {
-            sendUserState(containerId);
+            sendUserState(webSocketUserSessionMapper.get(sessionId));
             log.info("입장 세션={}", sessionId);
         }
     }
 
     // 유저가 입장이나 퇴장할 때 수정된 유저들의 정보를 브로드캐스팅
-    public void sendUserState(String containerId) {
-        messagingTemplate.convertAndSend("/topic/room/" + containerId + "/state", "현재 유저 정보");
+    public void sendUserState(UserSession userSession) {
+        messagingTemplate.convertAndSend("/topic/room/" + userSession.getContainerId() + "/state", userSession);
     }
 
     private UserSession createUserSession(SimpMessageHeaderAccessor headerAccessor) {
         String token = getHeaderValue(headerAccessor, "Authorization").substring(7);
         User user = getUserFromToken(token);
         Long containerId = Long.valueOf(getHeaderValue(headerAccessor, "projectId"));
-        return new UserSession(user.getId(), containerId);
+        return new UserSession(user.getId(), user.getName(), user.getEmail(), containerId);
     }
 
     private String getHeaderValue(SimpMessageHeaderAccessor headerAccessor, String headerKey) {

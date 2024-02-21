@@ -28,6 +28,6 @@ public class WebSocketEventListener {
         webSocketRoomUserCountMapper.decrease(String.valueOf(userSession.getContainerId()));
 
         //TODO 세션에서 roomId를 가져와서 수정된 정보 브로드캐스팅하기
-        userStateController.sendUserState("임시");
+        userStateController.sendUserState(userSession);
     }
 }
