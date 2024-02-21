@@ -192,8 +192,8 @@ public class ContainerService {
     }
 
     @Transactional
-    public ContainerDetailResponse copyContainer(CopyContainerRequest copyContainerRequest) {
-        Container sourceContainer = containerRepository.findById(copyContainerRequest.getContainerId())
+    public ContainerDetailResponse copyContainer(Long id, CopyContainerRequest copyContainerRequest) {
+        Container sourceContainer = containerRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Source container not found."));
 
         String newPath = basePath + copyContainerRequest.getRoomId() + "/" + sourceContainer.getName();
@@ -215,6 +215,8 @@ public class ContainerService {
                 .path(newPath)
                 .language(sourceContainer.getLanguage())
                 .build();
+//        newContainer.setUser(userRepository.findByEmail(copyContainerRequest.getRoomId())
+//                .orElseThrow(() -> new EntityNotFoundException("not found")));
         newContainer.setRoom(roomRepository.findById(copyContainerRequest.getRoomId())
                 .orElseThrow(()-> new EntityNotFoundException("Room not found.")));
         containerRepository.save(newContainer);
