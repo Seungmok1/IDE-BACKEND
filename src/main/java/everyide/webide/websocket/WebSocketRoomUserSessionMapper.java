@@ -48,7 +48,7 @@ public class WebSocketRoomUserSessionMapper {
     }
 
     public UserSession removeSession(String containerId, String sessionId) {
-        return findSession(containerId, sessionId);
+        return roomUserSessionMap.get(containerId).remove(sessionId);
     }
 
     private UserSession findSession(String containerId, String sessionId) {
