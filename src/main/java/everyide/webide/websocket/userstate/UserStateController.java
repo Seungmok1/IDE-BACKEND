@@ -45,7 +45,7 @@ public class UserStateController {
     // 유저가 입장이나 퇴장할 때 수정된 유저들의 정보를 브로드캐스팅
     public void sendUserState(String containerId) {
         messagingTemplate.convertAndSend(
-                "/topic/room/" + containerId + "/state",
+                "/topic/container/" + containerId + "/state",
                 new EnterResponseDto(
                         webSocketRoomUserSessionMapper.getAllSessionsInContainer(containerId),
                         messageRepository.findTop10ByContainerIdOrderBySendDateDesc(containerId)
