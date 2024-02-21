@@ -17,10 +17,10 @@ public class WebSocketRoomUserCountMapper {
     private final RoomRepository roomRepository;
 
     public boolean increase(String containerId) {
-        if (isMaxPeople(containerId)) {
-            log.warn("더 이상 공간이 없습니다.");
-            return false;
-        }
+//        if (isMaxPeople(containerId)) {
+//            log.warn("더 이상 공간이 없습니다.");
+//            return false;
+//        }
         roomUserCountMap.compute(containerId, (key, value) -> (value == null) ? 1 : value + 1);
         return true;
     }

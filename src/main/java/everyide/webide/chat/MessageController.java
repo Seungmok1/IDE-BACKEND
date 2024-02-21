@@ -18,18 +18,12 @@ public class MessageController {
 
     private final MessageRepository messageRepository;
 
-//    @SubscribeMapping("/topic/room/{roomId}/chat")
-//    @SendTo("topic/room/{roomId}/chat")
-//    public MessageDto enter(@DestinationVariable String roomId) {
-//        return new MessageDto("1", "TALK", "입장!", 1L);
-//    }
-
     @Transactional
-    @MessageMapping("/room/{roomId}/chat")
-    @SendTo("/topic/room/{roomId}/chat")
-    public MessageDto message(MessageDto messageDto, @DestinationVariable String roomId) {
+    @MessageMapping("/room/{containerId}/chat")
+    @SendTo("/topic/room/{containerId}/chat")
+    public MessageDto message(MessageDto messageDto, @DestinationVariable String containerId) {
         Message message = Message.builder()
-                .roomId(roomId)
+                .containerId(containerId)
                 .contentType(messageDto.getContentType())
                 .content(messageDto.getContent())
                 .senderId(messageDto.getSenderId())

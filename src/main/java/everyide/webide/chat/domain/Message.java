@@ -14,16 +14,16 @@ import java.util.UUID;
 public class Message{
 
     private String id;
-    private String roomId;
+    private String containerId;
     private String contentType;
     private String content;
     private Long senderId;
     private LocalDateTime sendDate;
 
     @Builder
-    public Message(String roomId, String contentType, String content, Long senderId) {
+    public Message(String containerId, String contentType, String content, Long senderId) {
         id = UUID.randomUUID().toString();
-        this.roomId = roomId;
+        this.containerId = containerId;
         this.contentType = contentType;
         this.content = content;
         this.senderId = senderId;

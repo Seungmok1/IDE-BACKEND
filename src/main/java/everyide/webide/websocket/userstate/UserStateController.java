@@ -29,8 +29,8 @@ public class UserStateController {
     private final WebSocketUserSessionMapper webSocketUserSessionMapper;
     private final SimpMessagingTemplate messagingTemplate;
 
-    @SubscribeMapping("/topic/room/{roomId}/enter")
-    public void enter(SimpMessageHeaderAccessor headerAccessor, @DestinationVariable String roomId) {
+    @SubscribeMapping("/room/{containerId}/enter")
+    public void enter(SimpMessageHeaderAccessor headerAccessor, @DestinationVariable String containerId) {
         String sessionId = headerAccessor.getUser().getName();
         webSocketUserSessionMapper.put(sessionId, createUserSession(headerAccessor));
 
@@ -39,18 +39,18 @@ public class UserStateController {
             log.warn("프로젝트 ID={}에 대한 최대 사용자 수에 도달했습니다. 세션 ID={}", getHeaderValue(headerAccessor, "projectId"), sessionId);
             messagingTemplate.convertAndSendToUser(sessionId, "/user/queue/disconnect", "입장불가");
         } else {
-            sendUserState(roomId);
+            sendUserState(containerId);
             log.info("입장 세션={}", sessionId);
         }
     }
 
     // 유저가 입장이나 퇴장할 때 수정된 유저들의 정보를 브로드캐스팅
-    public void sendUserState(String roomId) {
-        messagingTemplate.convertAndSend("topic/room/" + roomId + "/state", "현재 유저 정보");
+    public void sendUserState(String containerId) {
+        messagingTemplate.convertAndSend("/topic/room/" + containerId + "/state", "현재 유저 정보");
     }
 
     private UserSession createUserSession(SimpMessageHeaderAccessor headerAccessor) {
-        String token = getHeaderValue(headerAccessor, "Authorization");
+        String token = getHeaderValue(headerAccessor, "Authorization").substring(7);
         User user = getUserFromToken(token);
         Long containerId = Long.valueOf(getHeaderValue(headerAccessor, "projectId"));
         return new UserSession(user.getId(), containerId);
@@ -66,7 +66,8 @@ public class UserStateController {
     }
 
     private User getUserFromToken(String token) {
-        if (!jwtTokenProvider.validateToken(token).equals("success")) {
+        if (!jwtTokenProvider.validateToken(token).equals("Success")) {
+            System.out.println(jwtTokenProvider.validateToken(token));
             log.error("token 오류");
             throw new SecurityException("Invalid token");
         }
