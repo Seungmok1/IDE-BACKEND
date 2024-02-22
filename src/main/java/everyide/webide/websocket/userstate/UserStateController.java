@@ -48,6 +48,7 @@ public class UserStateController {
                                         .content(message.getContent())
                                         .build()))
                                 .collect(Collectors.toList())
+                                .reversed()
                         )
                 );
     }
