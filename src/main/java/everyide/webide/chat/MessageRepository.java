@@ -10,5 +10,5 @@ import java.util.List;
 @Repository
 public interface MessageRepository extends JpaRepository<Message, String> {
 
-    List<Message> findTop20ByContainerIdOrderBySendDateDesc(String containerId);
+    List<Message> findTop30ByContainerIdOrderBySendDateDesc(String containerId);
 }
