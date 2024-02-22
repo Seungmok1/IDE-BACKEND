@@ -1,14 +1,14 @@
 package everyide.webide.websocket.domain;
 
 import everyide.webide.chat.domain.MessageResponseDto;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 
 import java.util.List;
 
-@Getter
-@AllArgsConstructor
+@Data
+@Builder
 public class EnterResponseDto {
-    private List<UserSession> userSessions;
     private List<MessageResponseDto> messages;
+    private List<UserSession> userSessions;
 }
