@@ -12,9 +12,9 @@ public class FileController {
 
     private final FileService fileService;
 
-    @GetMapping("/api/{userId}/filetree/{containerName}")
-    public  ResponseEntity<FileTreeResponse> getFileTree(@PathVariable("userId") Long userId, @PathVariable("containerName") String containerName) {
-        return ResponseEntity.ok(fileService.listFilesAndDirectories(userId, containerName));
+    @GetMapping("/api/{id}/filetree/{containerName}")
+    public  ResponseEntity<FileTreeResponse> getFileTree(@PathVariable("id") String id, @PathVariable("containerName") String containerName) {
+        return ResponseEntity.ok(fileService.listFilesAndDirectories(id, containerName));
     }
 
     @GetMapping("/api/containers/{containerId}/files")

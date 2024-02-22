@@ -5,6 +5,8 @@ import everyide.webide.container.ContainerService;
 import everyide.webide.container.domain.Container;
 import everyide.webide.fileSystem.domain.Directory;
 import everyide.webide.fileSystem.domain.dto.*;
+import everyide.webide.room.RoomRepository;
+import everyide.webide.room.domain.Room;
 import everyide.webide.user.UserRepository;
 import everyide.webide.user.domain.User;
 import jakarta.persistence.EntityNotFoundException;
@@ -33,6 +35,7 @@ public class FileService {
     private final DirectoryRepository directoryRepository;
     private final UserRepository userRepository;
     private final ContainerRepository containerRepository;
+    private final RoomRepository roomRepository;
 
     public GetFileResponse getFile(Long containerId, String path) {
         Optional<Container> containerOptional = containerRepository.findById(containerId);
@@ -228,11 +231,16 @@ public class FileService {
         return "";
     }
 
-    public FileTreeResponse listFilesAndDirectories(Long userId, String containerName) {
-
-        User findUser = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found."));
-        String path = basePath + findUser.getEmail() + "/" + containerName;
+    public FileTreeResponse listFilesAndDirectories(String id, String containerName) {
+        String path = null;
+        try {
+            Long longId = Long.parseLong(id);
+            Optional<User> findUser = userRepository.findById(longId);
+            User user = findUser.get();
+            path = basePath + user.getEmail() + "/" + containerName;
+        } catch (NumberFormatException e) {
+            path = basePath + id + "/" + containerName;
+        }
 
         File root = new File(path);
         return listFilesAndDirectoriesRecursive(root);

@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -43,43 +44,40 @@ public class ContainerService {
     private final FileRepository fileRepository;
 
     public List<ContainerDetailResponse> getContainer(String id) {
-        Optional<User> findUser = userRepository.findById(Long.parseLong(id));
-
-        if (findUser.isPresent()) {
-            User user = findUser.get();
-            return user.getContainers().stream()
-                    .map(container -> ContainerDetailResponse.builder()
-                            .id(container.getId())
-                            .name(container.getName())
-                            .description(container.getDescription())
-                            .language(container.getLanguage())
-                            .active(container.isActive())
-                            .shared(container.getShared())
-                            .createDate(container.getCreateDate())
-                            .lastModifiedDate(container.getLastModifiedDate())
-                            .build())
-                    .collect(Collectors.toList());
+        try {
+            Long longId = Long.parseLong(id);
+            return userRepository.findById(longId)
+                    .map(user -> user.getContainers().stream()
+                            .map(this::toContainerDetailResponse)
+                            .collect(Collectors.toList()))
+                    .orElse(Collections.emptyList());
+        } catch (NumberFormatException e) {
+            try {
+                return roomRepository.findById(id)
+                        .map(room -> room.getContainers().stream()
+                                .map(this::toContainerDetailResponse)
+                                .collect(Collectors.toList()))
+                        .orElse(Collections.emptyList());
+            } catch (IllegalArgumentException illegalArgumentException) {
+                log.error("Invalid ID format: " + id);
+                return Collections.emptyList();
+            }
         }
-
-        Optional<Room> findRoom = roomRepository.findById(id);
-
-        if (findRoom.isPresent()) {
-            Room room = findRoom.get();
-            return room.getContainers().stream()
-                    .map(container -> ContainerDetailResponse.builder()
-                            .id(container.getId())
-                            .name(container.getName())
-                            .description(container.getDescription())
-                            .language(container.getLanguage())
-                            .active(container.isActive())
-                            .shared(container.getShared())
-                            .createDate(container.getCreateDate())
-                            .lastModifiedDate(container.getLastModifiedDate())
-                            .build())
-                    .collect(Collectors.toList());
-        }
-        return null;
     }
+
+    private ContainerDetailResponse toContainerDetailResponse(Container container) {
+        return ContainerDetailResponse.builder()
+                .id(container.getId())
+                .name(container.getName())
+                .description(container.getDescription())
+                .language(container.getLanguage())
+                .active(container.isActive())
+                .shared(container.getShared())
+                .createDate(container.getCreateDate())
+                .lastModifiedDate(container.getLastModifiedDate())
+                .build();
+    }
+
 
     public ContainerDetailResponse createContainer(CreateContainerRequest createContainerRequest) {
         Optional<User> findUser = userRepository.findByEmail(createContainerRequest.getEmail());
