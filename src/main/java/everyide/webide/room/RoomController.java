@@ -2,7 +2,6 @@ package everyide.webide.room;
 
 import everyide.webide.room.domain.CreateRoomRequestDto;
 import everyide.webide.room.domain.Room;
-import everyide.webide.room.domain.RoomType;
 import everyide.webide.room.domain.dto.EnterRoomResponseDto;
 import everyide.webide.room.domain.dto.RoomFixDto;
 import lombok.RequiredArgsConstructor;

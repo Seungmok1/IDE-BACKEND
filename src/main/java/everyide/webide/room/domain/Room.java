@@ -24,6 +24,7 @@ public class Room extends BaseEntity {
     private String id;
     private Boolean isLocked;
     private String name;
+    @Setter
     private String description;
     private String password;
     private RoomType type;
@@ -89,4 +90,5 @@ public class Room extends BaseEntity {
     public void removeContainer(Container container) {
         this.containers.remove(container);
     }
+
 }

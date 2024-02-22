@@ -6,6 +6,7 @@ import lombok.Data;
 public class RoomFixDto {
 
     private String name;
+    private String description;
     private String password;
     private Boolean isLocked;
 }

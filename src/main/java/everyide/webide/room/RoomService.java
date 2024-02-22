@@ -62,7 +62,9 @@ public class RoomService {
         }
 
         room.getUsersId().add(currentUser.getId());
+        currentUser.getRoomsList().add(room.getId());
         roomRepository.save(room);
+        userRepository.save(currentUser);
 
         return room;
     }
@@ -151,7 +153,9 @@ public class RoomService {
                 if (roomFixDto.getPassword() != null) {
                     room.setPassword(roomFixDto.getPassword());
                     room.setIsLocked(true);
-                } else if (roomFixDto.getIsLocked() != null && !roomFixDto.getIsLocked()) {
+                } if (roomFixDto.getDescription() != null) {
+                    room.setDescription(roomFixDto.getDescription());
+                } if (!roomFixDto.getIsLocked()) {
                     // password가 null이고, isLocked가 명시적으로 false로 설정된 경우
                     room.setIsLocked(false);
                     room.setPassword(null); // isLocked가 false일 때 password도 null로 설정
