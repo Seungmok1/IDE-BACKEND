@@ -61,6 +61,13 @@ public class ContainerController {
 
     @PostMapping("api/containers/{containerId}")
     public ResponseEntity<?> copyContainers(@PathVariable("containerId") Long id, @RequestBody CopyContainerRequest copyContainerRequest) {
-        return ResponseEntity.ok(containerService.copyContainer(id, copyContainerRequest));
+        ContainerDetailResponse container = containerService.copyContainer(id, copyContainerRequest);
+        Long status = container.getId();
+
+        if (status.equals(-400L)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이미 방에 공유된 컨테이너 입니다.");
+        } else {
+            return ResponseEntity.ok(container);
+        }
     }
 }
