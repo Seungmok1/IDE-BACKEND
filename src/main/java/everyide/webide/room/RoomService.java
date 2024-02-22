@@ -42,6 +42,7 @@ public class RoomService {
         // 1. 방생성
         Room room = Room.builder()
                 .name(requestDto.getName())
+                .description(requestDto.getDescription())
                 .isLocked(requestDto.getIsLocked())
                 .password(requestDto.getPassword())
                 .type(RoomType.valueOf(requestDto.getRoomType()))
@@ -66,8 +67,14 @@ public class RoomService {
         return room;
     }
 
-    public List<RoomResponseDto> loadAllRooms() {
-        return roomRepository.findAllByAvailableTrue()
+    public List<RoomResponseDto> loadAllRooms(String name) {
+        if (name == null) {
+            return roomRepository.findAllByAvailableTrue()
+                    .stream()
+                    .map(this::toRoomResponseDto)
+                    .collect(Collectors.toList());
+        }
+        return roomRepository.findAllByNameContaining(name)
                 .stream()
                 .map(this::toRoomResponseDto)
                 .collect(Collectors.toList());
@@ -181,52 +188,20 @@ public class RoomService {
         roomRepository.save(room);
     }
 
-    public List<RoomResponseDto> searchRooms(String name, RoomType type, Boolean group) {
-
-        User user = getCurrentUser();
-
-        if (name == null) {
-            if (type == null && group) {
-                return roomRepository.findAllByUsersIdContains(user.getId())
-                        .stream()
-                        .map(this::toRoomResponseDto)
-                        .collect(Collectors.toList());
-            } else if (type != null & !group) {
-                return roomRepository.findAllByType(type)
-                        .stream()
-                        .map(this::toRoomResponseDto)
-                        .collect(Collectors.toList());
-            }
-        }
-        if (name != null) {
-            if (type == null && group) {
-                return roomRepository.findAllByNameContaining(name)
-                        .stream()
-                        .filter(room -> room.getUsersId().contains(user.getId()))
-                        .map(this::toRoomResponseDto)
-                        .collect(Collectors.toList());
-            }  else if (type != null & !group) {
-                return roomRepository.findAllByNameContainingAndType(name, type)
-                        .stream()
-                        .map(this::toRoomResponseDto)
-                        .collect(Collectors.toList());
-            }
-        }
-        return roomRepository.findAll()
-                .stream()
-                .map(this::toRoomResponseDto)
-                .collect(Collectors.toList());
-    }
-
     private RoomResponseDto toRoomResponseDto(Room room) {
+        User user = getCurrentUser();
+        boolean join;
+        join = user.getRoomsList().contains(room.getId());
         return RoomResponseDto.builder()
                 .roomId(room.getId())
                 .name(room.getName())
+                .description(room.getDescription())
                 .isLocked(room.getIsLocked())
                 .type(room.getType())
                 .available(room.getAvailable())
                 .maxPeople(room.getMaxPeople())
                 .usersCnt(room.getUsersId().size())
+                .isJoined(join)
                 .ownerName(Optional.ofNullable(room.getOwner())
                         .map(User::getName)
                         .orElse("Unknown"))

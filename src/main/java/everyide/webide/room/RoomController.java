@@ -22,8 +22,8 @@ public class RoomController {
     }
 
     @GetMapping("/api/communities")
-    public ResponseEntity<?> loadAllRooms() {
-        return ResponseEntity.ok().body(roomService.loadAllRooms());
+    public ResponseEntity<?> loadAllRooms(@RequestParam(value = "name", required = false) String name) {
+        return ResponseEntity.ok().body(roomService.loadAllRooms(name));
     }
 
     @PatchMapping("/api/community/{roomId}/settings")
@@ -45,11 +45,4 @@ public class RoomController {
         roomService.leaveRoom(roomId);
     }
 
-    @GetMapping("/api/communities/search")
-    public ResponseEntity<?> searchRooms(
-            @RequestParam(value = "name", required = false) String name,
-            @RequestParam(value = "type", required = false) RoomType type,
-            @RequestParam(value = "group") Boolean group) {
-        return ResponseEntity.ok(roomService.searchRooms(name, type, group));
-    }
 }

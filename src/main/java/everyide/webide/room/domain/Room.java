@@ -24,6 +24,7 @@ public class Room extends BaseEntity {
     private String id;
     private Boolean isLocked;
     private String name;
+    private String description;
     private String password;
     private RoomType type;
     private Boolean available = true;
@@ -42,9 +43,10 @@ public class Room extends BaseEntity {
     private List<Long> usersId;
 
     @Builder
-    public Room(Boolean isLocked, String name, String password, RoomType type, Boolean available, User owner, Integer maxPeople, List<Long> usersId) {
+    public Room(Boolean isLocked, String description, String name, String password, RoomType type, Boolean available, User owner, Integer maxPeople, List<Long> usersId) {
         id = UUID.randomUUID().toString();
         this.name = name;
+        this.description = description;
         this.password = password;
         this.isLocked = isLocked;
         this.type = type;
