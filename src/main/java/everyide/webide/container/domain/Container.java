@@ -29,7 +29,10 @@ public class Container extends BaseEntity {
     private String description;
     private String language;
     private boolean active;
+    private int shared;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Container sourceContainer;
     @OneToMany(mappedBy = "container")
     private List<Directory> directories = new ArrayList<>();
     @ManyToOne(fetch = FetchType.LAZY)
@@ -46,7 +49,9 @@ public class Container extends BaseEntity {
         this.description = description;
         this.language = language;
         this.active = true;
+        this.shared = 0;
     }
+
 
     //== 연관관계 메서드 ==//
     public void setUser(User user) {
@@ -59,6 +64,10 @@ public class Container extends BaseEntity {
         room.addContainer(this);
     }
 
+    public void setSourceContainer(Container sourceContainer) {
+        this.sourceContainer = sourceContainer;
+    }
+
     public void addDirectories(Directory directory) {
         this.directories.add(directory);
     }
@@ -69,6 +78,16 @@ public class Container extends BaseEntity {
 
     public void offContainer() {
         this.active = false;
+    }
+
+    public Container share() {
+        this.shared += 1;
+        return this;
+    }
+
+    public Container unshare() {
+        this.shared -= 1;
+        return this;
     }
 
     public Container updateContainer(String newName, String newPath, String newDescription, boolean active) {

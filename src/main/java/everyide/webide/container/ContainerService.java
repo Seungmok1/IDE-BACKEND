@@ -54,6 +54,7 @@ public class ContainerService {
                             .description(container.getDescription())
                             .language(container.getLanguage())
                             .active(container.isActive())
+                            .shared(container.getShared())
                             .createDate(container.getCreateDate())
                             .lastModifiedDate(container.getLastModifiedDate())
                             .build())
@@ -71,6 +72,7 @@ public class ContainerService {
                             .description(container.getDescription())
                             .language(container.getLanguage())
                             .active(container.isActive())
+                            .shared(container.getShared())
                             .createDate(container.getCreateDate())
                             .lastModifiedDate(container.getLastModifiedDate())
                             .build())
@@ -129,6 +131,7 @@ public class ContainerService {
                     .description(newContainer.getDescription())
                     .language(newContainer.getLanguage())
                     .active(newContainer.isActive())
+                    .shared(newContainer.getShared())
                     .createDate(newContainer.getCreateDate())
                     .lastModifiedDate(newContainer.getLastModifiedDate())
                     .build();
@@ -142,6 +145,7 @@ public class ContainerService {
 
 
 
+    @Transactional
     public boolean deleteContainer(DeleteContainerRequest deleteContainerRequest) {
         String path = basePath + deleteContainerRequest.getEmail() + "/" + deleteContainerRequest.getName();
         File container = new File(path);
@@ -155,6 +159,7 @@ public class ContainerService {
                 findContainer.getRoom().removeContainer(findContainer);
             }
 
+            containerRepository.save(findContainer.getSourceContainer().unshare());
             containerRepository.delete(findContainer);
             directoryService.deleteDirectory(new DeleteDirectoryRequest(deleteContainerRequest.getEmail(), "/" + deleteContainerRequest.getName()));
 
@@ -203,7 +208,10 @@ public class ContainerService {
         String newPath = basePath + copyContainerRequest.getRoomId() + "/" + sourceContainer.getName();
         File newContainerDir = new File(newPath);
         if (newContainerDir.exists()) {
-            throw new IllegalStateException("Target container already exists.");
+//            throw new IllegalStateException("Target container already exists.");
+            return ContainerDetailResponse.builder()
+                    .id(-400L)
+                    .build();
         }
 
         try {
@@ -219,11 +227,14 @@ public class ContainerService {
                 .path(newPath)
                 .language(sourceContainer.getLanguage())
                 .build();
-//        newContainer.setUser(userRepository.findByEmail(copyContainerRequest.getRoomId())
-//                .orElseThrow(() -> new EntityNotFoundException("not found")));
-        newContainer.setRoom(roomRepository.findById(copyContainerRequest.getRoomId())
-                .orElseThrow(()-> new EntityNotFoundException("Room not found.")));
+        newContainer.setUser(userRepository.findByEmail(copyContainerRequest.getRoomId())
+                .orElseThrow(() -> new EntityNotFoundException("not found")));
+//        newContainer.setRoom(roomRepository.findById(copyContainerRequest.getRoomId())
+//                .orElseThrow(()-> new EntityNotFoundException("Room not found.")));
+        newContainer.setSourceContainer(sourceContainer);
+
         containerRepository.save(newContainer);
+        containerRepository.save(sourceContainer.share());
 
         Directory newDirectory = Directory.builder()
                 .path(newPath)
@@ -238,6 +249,7 @@ public class ContainerService {
                 .description(newContainer.getDescription())
                 .language(newContainer.getLanguage())
                 .active(newContainer.isActive())
+                .shared(newContainer.getShared())
                 .createDate(newContainer.getCreateDate())
                 .lastModifiedDate(newContainer.getLastModifiedDate())
                 .build();
