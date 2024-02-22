@@ -227,10 +227,10 @@ public class ContainerService {
                 .path(newPath)
                 .language(sourceContainer.getLanguage())
                 .build();
-        newContainer.setUser(userRepository.findByEmail(copyContainerRequest.getRoomId())
-                .orElseThrow(() -> new EntityNotFoundException("not found")));
-//        newContainer.setRoom(roomRepository.findById(copyContainerRequest.getRoomId())
-//                .orElseThrow(()-> new EntityNotFoundException("Room not found.")));
+//        newContainer.setUser(userRepository.findByEmail(copyContainerRequest.getRoomId())
+//                .orElseThrow(() -> new EntityNotFoundException("not found")));
+        newContainer.setRoom(roomRepository.findById(copyContainerRequest.getRoomId())
+                .orElseThrow(()-> new EntityNotFoundException("Room not found.")));
         newContainer.setSourceContainer(sourceContainer);
 
         containerRepository.save(newContainer);
