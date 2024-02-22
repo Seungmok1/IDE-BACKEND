@@ -17,6 +17,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,19 +37,21 @@ public class UserStateController {
 
     // 유저가 입장이나 퇴장할 때 수정된 유저들의 정보를 브로드캐스팅
     public void sendUserState(String containerId) {
+        List<MessageResponseDto> messages = new java.util.ArrayList<>(messageRepository.findTop10ByContainerIdOrderBySendDateDesc(containerId)
+                .stream()
+                .map((message -> MessageResponseDto.builder()
+                        .userId(message.getUserId())
+                        .name(message.getUserName())
+                        .content(message.getContent())
+                        .build()))
+                .toList());
+        Collections.reverse(messages);
+
         messagingTemplate.convertAndSend(
                 "/topic/container/" + containerId + "/state",
                 new EnterResponseDto(
                         webSocketRoomUserSessionMapper.getAllSessionsInContainer(containerId),
-                        messageRepository.findTop10ByContainerIdOrderBySendDateDesc(containerId)
-                                .stream()
-                                .map((message -> MessageResponseDto.builder()
-                                        .userId(message.getUserId())
-                                        .name(message.getUserName())
-                                        .content(message.getContent())
-                                        .build()))
-                                .collect(Collectors.toList())
-                                .reversed()
+                        messages
                         )
                 );
     }
