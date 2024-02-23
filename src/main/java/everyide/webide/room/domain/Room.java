@@ -1,6 +1,8 @@
 package everyide.webide.room.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import everyide.webide.BaseEntity;
+import everyide.webide.container.domain.Container;
 import everyide.webide.user.domain.User;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -8,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,30 +24,34 @@ public class Room extends BaseEntity {
     private String id;
     private Boolean isLocked;
     private String name;
+    @Setter
+    private String description;
     private String password;
     private RoomType type;
     private Boolean available = true;
-    private Boolean fullRoom;
+    private String rootPath;
     @Setter
-    private Integer personCnt;
     private Integer maxPeople;
 
-    @OneToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     private User owner;
+
+    @OneToMany(mappedBy = "room")
+    private List<Container> containers = new ArrayList<>();
 
     @ElementCollection
     private List<Long> usersId;
 
     @Builder
-    public Room(Boolean isLocked, String name, String password, RoomType type, Boolean fullRoom, Boolean available, Integer personCnt, User owner, Integer maxPeople, List<Long> usersId) {
+    public Room(Boolean isLocked, String description, String name, String password, RoomType type, Boolean available, User owner, Integer maxPeople, List<Long> usersId) {
         id = UUID.randomUUID().toString();
         this.name = name;
+        this.description = description;
         this.password = password;
         this.isLocked = isLocked;
         this.type = type;
-        this.personCnt = personCnt;
         this.maxPeople = maxPeople;
-        this.fullRoom = fullRoom;
         this.usersId = usersId;
         this.owner = owner;
         // 사용자가 available 값을 명시적으로 설정한 경우 해당 값을 사용
@@ -68,11 +75,20 @@ public class Room extends BaseEntity {
         this.available = available;
     }
 
-    public void setfullRoom(Boolean fullRoom) {
-        this.fullRoom = fullRoom;
-    }
-
     public void setOwner(User owner) {
         this.owner = owner;
     }
+
+    public void setRootPath(String path) {
+        this.rootPath = path;
+    }
+
+    public void addContainer(Container container) {
+        this.containers.add(container);
+    }
+
+    public void removeContainer(Container container) {
+        this.containers.remove(container);
+    }
+
 }

@@ -2,6 +2,7 @@ namespace: everyide
 resources:
   - mysql.yaml
   - backend.yaml
+  - frontend.yaml
   - nginx.yaml
   - pvc.yaml
 configMapGenerator:

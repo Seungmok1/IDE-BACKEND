@@ -1,10 +1,7 @@
 package everyide.webide.container;
 
 
-import everyide.webide.container.domain.ContainerDetailResponse;
-import everyide.webide.container.domain.CreateContainerRequest;
-import everyide.webide.container.domain.DeleteContainerRequest;
-import everyide.webide.container.domain.UpdateContainerRequest;
+import everyide.webide.container.domain.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -21,20 +18,21 @@ public class ContainerController {
 
     private final ContainerService containerService;
 
-    @GetMapping("api/{userId}/containers")
-    public ResponseEntity<List<ContainerDetailResponse>> getContainers(@PathVariable("userId") Long userId) {
-        return ResponseEntity.ok(containerService.getContainer(userId));
+    @GetMapping("api/{id}/containers")
+    public ResponseEntity<List<ContainerDetailResponse>> getContainers(@PathVariable("id") String id) {
+        return ResponseEntity.ok(containerService.getContainer(id));
     }
 
     @PostMapping("api/containers")
     public ResponseEntity<?> createContainers(@RequestBody CreateContainerRequest createContainerRequest) {
-        String status = containerService.createContainer(createContainerRequest);
-        if (status.equals("ok")) {
-            return ResponseEntity.status(HttpStatus.CREATED).body("컨테이너 생성완료.");
-        } else if (status.equals("already used")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이미 사용중인 이름입니다.");
-        } else {
+        ContainerDetailResponse container = containerService.createContainer(createContainerRequest);
+        Long status = container.getId();
+        if (status.equals(-200L)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("존재하지 않는 경로입니다. (사용자 이메일 확인)");
+        } else if (status.equals(-300L)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("이미 사용중인 이름입니다.");
+        } else {
+            return ResponseEntity.ok(container);
         }
 
     }
@@ -61,4 +59,15 @@ public class ContainerController {
         }
     }
 
+    @PostMapping("api/containers/{containerId}")
+    public ResponseEntity<?> copyContainers(@PathVariable("containerId") Long id, @RequestBody CopyContainerRequest copyContainerRequest) {
+        ContainerDetailResponse container = containerService.copyContainer(id, copyContainerRequest);
+        Long status = container.getId();
+
+        if (status.equals(-400L)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이미 방에 공유된 컨테이너 입니다.");
+        } else {
+            return ResponseEntity.ok(container);
+        }
+    }
 }

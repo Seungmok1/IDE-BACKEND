@@ -9,11 +9,11 @@
 // @RequiredArgsConstructor
 //public class InitDb {
 //
-//     private final InitService initService;
-//
-//     @PostConstruct
-//     public void init() throws IOException {
-//         initService.dbInit();
-//     }
+////     private final InitService initService;
+////
+////     @PostConstruct
+////     public void init() throws IOException {
+////         initService.dbInit();
+////     }
 //}
 //

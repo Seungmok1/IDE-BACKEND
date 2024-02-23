@@ -3,7 +3,10 @@ package everyide.webide.fileSystem;
 import everyide.webide.container.ContainerRepository;
 import everyide.webide.container.ContainerService;
 import everyide.webide.container.domain.Container;
+import everyide.webide.fileSystem.domain.Directory;
 import everyide.webide.fileSystem.domain.dto.*;
+import everyide.webide.room.RoomRepository;
+import everyide.webide.room.domain.Room;
 import everyide.webide.user.UserRepository;
 import everyide.webide.user.domain.User;
 import jakarta.persistence.EntityNotFoundException;
@@ -29,8 +32,10 @@ public class FileService {
     @Value("${file.basePath}")
     private String basePath;
     private final FileRepository fileRepository;
+    private final DirectoryRepository directoryRepository;
     private final UserRepository userRepository;
     private final ContainerRepository containerRepository;
+    private final RoomRepository roomRepository;
 
     public GetFileResponse getFile(Long containerId, String path) {
         Optional<Container> containerOptional = containerRepository.findById(containerId);
@@ -55,7 +60,7 @@ public class FileService {
         return null;
     }
 
-    public void createFile(CreateFileRequest createFileRequest) {
+    public String createFile(CreateFileRequest createFileRequest) {
         String path = basePath + createFileRequest.getEmail() + createFileRequest.getPath();
         File file = new File(path);
 
@@ -66,28 +71,39 @@ public class FileService {
                 }
                 everyide.webide.fileSystem.domain.File newFile = everyide.webide.fileSystem.domain.File.builder()
                         .path(path)
+                        .content(createFileRequest.getContent())
                         .build();
                 fileRepository.save(newFile);
 
                 log.info(path + " 파일이 생성되었습니다.");
+                return "ok";
             } else {
                 log.info(path + " 파일은 이미 존재합니다.");
+                return "already used";
             }
         } catch (IOException e) {
             log.error("파일 생성 중 오류 발생", e);
+            return "cant";
         }
     }
 
-    public void updateFile(UpdateFileRequest updateFileRequest) {
+    public String updateFile(UpdateFileRequest updateFileRequest) {
         String oldPath = basePath + updateFileRequest.getEmail() + updateFileRequest.getFromPath();
         File oldFile = new File(oldPath);
 
         if (updateFileRequest.getNewContent() != null && !updateFileRequest.getNewContent().isEmpty()) {
             try (FileWriter writer = new FileWriter(oldFile, false)) { // false to overwrite
                 writer.write(updateFileRequest.getNewContent());
+
+                everyide.webide.fileSystem.domain.File findFile = fileRepository.findByPath(oldPath)
+                        .orElseThrow(() -> new EntityNotFoundException("File not found."));
+                fileRepository.save(findFile.updateContent(updateFileRequest.getNewContent()));
+
                 log.info(oldPath + " 파일이 업데이트되었습니다.");
+                return "ok";
             } catch (IOException e) {
                 log.error("파일 업데이트 중 오류 발생", e);
+                return "cant";
             }
         }
 
@@ -102,14 +118,18 @@ public class FileService {
                 fileRepository.save(findFile.updateFile(newPath));
 
                 log.info(oldPath + " 파일이 " + newPath + "로 이름이 변경되었습니다.");
+                return "ok";
             } else {
                 log.error("파일 이름 변경 실패");
+                return "cant";
             }
+        } else {
+            return "cant";
         }
     }
 
 
-    public void deleteFile(DeleteFileRequest deleteFileRequest) {
+    public String deleteFile(DeleteFileRequest deleteFileRequest) {
         String path = basePath + deleteFileRequest.getEmail() + deleteFileRequest.getPath();
         File file = new File(path);
 
@@ -119,8 +139,10 @@ public class FileService {
             fileRepository.delete(findFile);
 
             log.info(path + " 파일이 삭제되었습니다.");
+            return "ok";
         } else {
             log.error("파일 삭제 실패");
+            return "cant";
         }
     }
 
@@ -146,7 +168,8 @@ public class FileService {
             writer.flush();
 
             everyide.webide.fileSystem.domain.File defaultFile = everyide.webide.fileSystem.domain.File.builder()
-                    .path(path + fileName)
+                    .path(path + "/" + fileName)
+                    .content(defaultContent)
                     .build();
             fileRepository.save(defaultFile);
 
@@ -156,7 +179,7 @@ public class FileService {
 
         File readme = new File(path, "README.md");
         try (FileWriter writer = new FileWriter(readme)) {
-            writer.write("# 컨테이너 이름\n" +
+            String content = "# 컨테이너 이름\n" +
                     "\n" +
                     "## 개요\n" +
                     "\n" +
@@ -168,12 +191,15 @@ public class FileService {
                     "\n" +
                     "### 사전 요구 사항\n" +
                     "\n" +
-                    "컨테이너를 사용하기 위해 필요한 도구, 라이브러리, 환경 설정 등을 나열합니다.");
+                    "컨테이너를 사용하기 위해 필요한 도구, 라이브러리, 환경 설정 등을 나열합니다.";
+            writer.write(content);
             writer.flush();
 
             everyide.webide.fileSystem.domain.File readmeFile = everyide.webide.fileSystem.domain.File.builder()
-                    .path(path + "README.md")
+                    .path(path + "/README.md")
+                    .content(content)
                     .build();
+
             fileRepository.save(readmeFile);
 
         } catch (IOException e) {
@@ -187,7 +213,7 @@ public class FileService {
 
         int emailIndex = -1;
         for (int i = 0; i < parts.length; i++) {
-            if (parts[i].contains("@")) {
+            if (parts[i].contains("@") || parts[i].contains("-")) {
                 emailIndex = i;
                 break;
             }
@@ -205,11 +231,16 @@ public class FileService {
         return "";
     }
 
-    public FileTreeResponse listFilesAndDirectories(Long userId, String containerName) {
-
-        User findUser = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found."));
-        String path = basePath + findUser.getEmail() + "/" + containerName;
+    public FileTreeResponse listFilesAndDirectories(String id, String containerName) {
+        String path = null;
+        try {
+            Long longId = Long.parseLong(id);
+            Optional<User> findUser = userRepository.findById(longId);
+            User user = findUser.get();
+            path = basePath + user.getEmail() + "/" + containerName;
+        } catch (NumberFormatException e) {
+            path = basePath + id + "/" + containerName;
+        }
 
         File root = new File(path);
         return listFilesAndDirectoriesRecursive(root);
@@ -218,8 +249,21 @@ public class FileService {
     private FileTreeResponse listFilesAndDirectoriesRecursive(File directory) {
         String type = directory.isDirectory() ? "directory" : "file";
         String path = extractPathAfterEmail(directory.getPath()).isEmpty() ? "/" : extractPathAfterEmail(directory.getPath());
+        String id = null;
 
-        FileTreeResponse fileInfo = new FileTreeResponse(UUID.randomUUID(), directory.getName(), type, path, new ArrayList<>());
+        log.info(directory.getPath());
+        if (type.equals("directory")) {
+            Directory findDirectory = directoryRepository.findByPath(directory.getPath())
+                    .orElseThrow(() -> new EntityNotFoundException("Not found."));
+
+            id = findDirectory.getId();
+        } else {
+            everyide.webide.fileSystem.domain.File findFile = fileRepository.findByPath(directory.getPath())
+                    .orElseThrow(() -> new EntityNotFoundException("Not found."));
+            id = findFile.getId();
+        }
+
+        FileTreeResponse fileInfo = new FileTreeResponse(id, directory.getName(), type, path, new ArrayList<>());
 
         File[] files = directory.listFiles();
         if (files != null) {
@@ -230,6 +274,7 @@ public class FileService {
                 }
 
                 FileTreeResponse child = listFilesAndDirectoriesRecursive(file);
+                System.out.println("child = " + child.getPath());
                 fileInfo.getChildren().add(child);
             }
         }

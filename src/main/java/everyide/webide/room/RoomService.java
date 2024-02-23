@@ -1,179 +1,240 @@
 package everyide.webide.room;
 
+import everyide.webide.config.auth.exception.NoRoomException;
 import everyide.webide.config.auth.exception.RoomDestroyException;
+import everyide.webide.config.auth.exception.ValidateRoomException;
 import everyide.webide.container.ContainerRepository;
 import everyide.webide.container.domain.Container;
+import everyide.webide.fileSystem.DirectoryService;
+import everyide.webide.fileSystem.FileService;
+import everyide.webide.fileSystem.domain.Directory;
 import everyide.webide.room.domain.*;
+import everyide.webide.room.domain.dto.EnterRoomResponseDto;
 import everyide.webide.room.domain.dto.RoomFixDto;
 import everyide.webide.user.UserRepository;
 import everyide.webide.user.domain.User;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RoomService {
 
+    @Value("${file.basePath}")
+    private String basePath;
     private final RoomRepository roomRepository;
-    private final ContainerRepository containerRepository;
     private final UserRepository userRepository;
+    private final DirectoryService directoryService;
 
     public Room create(CreateRoomRequestDto requestDto) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName(); // JWT에서 사용자의 이메일 가져오기
-        Optional<User> byEmail = userRepository.findByEmail(email);
-        User user = byEmail.orElseThrow();
+        User currentUser = getCurrentUser();
 
+        // 1. 방생성
         Room room = Room.builder()
                 .name(requestDto.getName())
+                .description(requestDto.getDescription())
                 .isLocked(requestDto.getIsLocked())
                 .password(requestDto.getPassword())
                 .type(RoomType.valueOf(requestDto.getRoomType()))
-                .maxPeople(requestDto.getMaxPeople()) // 최대 입장 허용 인원을 프론트에서 막을지.. 백에서도 막아야되는지..?
+                .maxPeople(requestDto.getMaxPeople())
                 .usersId(new ArrayList<>())
-                .fullRoom(false)
-                .owner(user)
-                .personCnt(1)
-                .build();
-        Container container = Container.builder()
-                .name(room.getName())
-                .room(room)
+                .owner(currentUser)
                 .build();
 
-        room.getUsersId().add(user.getId());
 
+        // 2. 방 디렉토리 생성 (방 아이디 이름으로)
+        Directory rootDirectory = directoryService.createRootDirectory(room.getId());
+        if (rootDirectory != null) {
+            room.setRootPath(basePath + room.getId());
+            log.info("방 디렉토리 생성 완료");
+        } else {
+            log.info("루트 디렉토리 생성불가");
+        }
+
+        room.getUsersId().add(currentUser.getId());
+        currentUser.getRoomsList().add(room.getId());
         roomRepository.save(room);
-        containerRepository.save(container);
+        userRepository.save(currentUser);
 
         return room;
     }
 
-    public List<RoomResponseDto> loadAllRooms() {
-        return roomRepository.findAllByAvailableTrue()
+    public List<RoomResponseDto> loadAllRooms(String name) {
+        if (name == null) {
+            return roomRepository.findAllByAvailableTrue()
+                    .stream()
+                    .sorted(Comparator.comparing(Room::getCreateDate).reversed())
+                    .map(this::toRoomResponseDto)
+                    .collect(Collectors.toList());
+        }
+        return roomRepository.findAllByNameContaining(name)
                 .stream()
+                .filter(Room::getAvailable)
+                .sorted(Comparator.comparing(Room::getCreateDate).reversed())
                 .map(this::toRoomResponseDto)
                 .collect(Collectors.toList());
     }
 
-    public Room enteredRoom(String roomId) {
+    public EnterRoomResponseDto enteredRoom(String roomId, String password) {
         Room room = roomRepository.findById(roomId)
-                .orElseThrow(() -> new RuntimeException("Room not found"));
-        // 1. 만약 현재인원과 총 인원이 같으면 들어갈 수 없다. 현재 인원은 무조건 총 인원보다 작아야 한다.
-        //    만약 그렇지 않다면 예외처리
-        if (room.getPersonCnt().equals(room.getMaxPeople())) {
-            room.setfullRoom(true);
-            throw new RuntimeException("너는 우리와 함께 할 수 없어");
+                .orElseThrow(() -> new NoRoomException("Room not found"));
+        User currentUser = getCurrentUser();
+
+        if (room.getUsersId().contains(currentUser.getId())) {
+            validateRoomAccess(room, password);
+            List<String> usersNames = getUsersNamesFromRoom(room);
+
+            // 응답 객체 생성 및 반환
+            return buildEnterRoomResponse(room, usersNames);
+        } else {
+            if (room.getMaxPeople() <= room.getUsersId().size()) {
+                throw new NoRoomException("Member is full");
+            }
+            // 비밀번호가 설정된 방인 경우, 비밀번호 확인
+            validateRoomAccess(room, password);
+            // 현재 사용자가 방의 사용자 목록에 없다면 추가
+            addUserToRoomIfNotPresent(room, currentUser);
+
+            // 사용자 이름 리스트 생성
+            List<String> usersNames = getUsersNamesFromRoom(room);
+            return buildEnterRoomResponse(room, usersNames);
         }
+    }
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName(); // JWT에서 사용자의 이메일 가져오기
-        Optional<User> byEmail = userRepository.findByEmail(email);
-        User user = byEmail.orElseThrow();
+    private void validateRoomAccess(Room room, String password) {
+        if (room.getIsLocked() && !password.equals(room.getPassword())) {
+            throw new ValidateRoomException("비밀번호가 틀렸습니다.");
+        }
+    }
 
-        // 2. 예외에 걸리지 않았다고 할 때, 현재 인원수에 1을 더한다 (내가 들어갔으니까)
-        //    그리고 입장한 아이디를 usersId에 추가한다.
-        room.setPersonCnt(room.getPersonCnt() + 1);
-        room.getUsersId().add(user.getId()); // userId는 메소드 인자로 받거나 다른 방식으로 결정해야 함
+    private User getCurrentUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+    }
 
-        // 데이터베이스 업데이트 (room 엔티티 저장)
-        roomRepository.save(room);
+    private void addUserToRoomIfNotPresent(Room room, User user) {
+        if (!room.getUsersId().contains(user.getId())) {
+            room.getUsersId().add(user.getId());
+            user.getRoomsList().add(room.getId()); // 유저의 룸 리스트에 추가
+            roomRepository.save(room);
+        }
+    }
 
-        // 3. 나머지는 그냥 반환해준다
-        return room;
+    private List<String> getUsersNamesFromRoom(Room room) {
+        return room.getUsersId().stream()
+                .map(userRepository::findById)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(User::getName)
+                .collect(Collectors.toList());
+    }
+
+    private EnterRoomResponseDto buildEnterRoomResponse(Room room, List<String> usersNames) {
+        return EnterRoomResponseDto.builder()
+                .room(room)
+                .usersName(usersNames)
+                .ownerId(room.getOwner().getId())
+                .ownerName(room.getOwner().getName())
+                .build();
     }
 
     public void fixRoom(String roomId, RoomFixDto roomFixDto) {
-        roomRepository.findById(roomId).ifPresent(room -> {
-            // name 업데이트 (null이 아닌 경우에만)
-            if (roomFixDto.getName() != null) {
-                room.setName(roomFixDto.getName());
-            }
+        User user = getCurrentUser();
+        Optional<Room> byId = roomRepository.findById(roomId);
+        Room room = byId.orElseThrow();
 
-            // password와 isLocked 업데이트
-            if (roomFixDto.getPassword() != null) {
-                room.setPassword(roomFixDto.getPassword());
-                room.setIsLocked(true);
-            } else if (roomFixDto.getIsLocked() != null && !roomFixDto.getIsLocked()) {
-                // password가 null이고, isLocked가 명시적으로 false로 설정된 경우
-                room.setIsLocked(false);
-                room.setPassword(null); // isLocked가 false일 때 password도 null로 설정
-            }
+        if (user.equals(room.getOwner())) {
+            roomRepository.findById(roomId).ifPresent(r -> {
+                // name 업데이트 (null이 아닌 경우에만)
+                if (roomFixDto.getName() != null) {
+                    room.setName(roomFixDto.getName());
+                }
 
-            // 변경사항을 데이터베이스에 저장
-            roomRepository.save(room);
-        });
+                // password와 isLocked 업데이트
+                if (roomFixDto.getPassword() != null) {
+                    room.setPassword(roomFixDto.getPassword());
+                    room.setIsLocked(true);
+                } if (roomFixDto.getDescription() != null) {
+                    room.setDescription(roomFixDto.getDescription());
+                } if (!roomFixDto.getIsLocked()) {
+                    // password가 null이고, isLocked가 명시적으로 false로 설정된 경우
+                    room.setIsLocked(false);
+                    room.setPassword(null); // isLocked가 false일 때 password도 null로 설정
+                }
+
+                // 변경사항을 데이터베이스에 저장
+                roomRepository.save(r);
+            });
+        } else {
+            throw new RuntimeException("방장이 아닌 사람은 방을 수정 할 수 없습니다.");
+        }
+
     }
 
-    public void exitRoom(String roomId) {
+    public void leaveRoom(String roomId) {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName(); // JWT에서 사용자의 이메일 가져오기
-        Optional<User> byEmail = userRepository.findByEmail(email);
-        User user = byEmail.orElseThrow();
+        User user = getCurrentUser();
 
-        if (room.getFullRoom()) {
-            room.setfullRoom(false);
-        }
-        // exitRoom을 실행하는 user가 Owner라면 방은 폭파됨. 참가 인원은 모두 삭제되고
-        // UsersId에 있는 모든 유저들을 로비로 리다이렉트 해야함
-        if(user.equals(room.getOwner())) {
-            room.setAvailable(false);
-            room.getUsersId().clear();
-            room.setPersonCnt(0);
-            room.setOwner(null);
-            user.setRoom(null);
-            roomRepository.save(room);
-            userRepository.save(user);
-            throw new RoomDestroyException("도비는 이제 자유에요.");
-        } else {
-            room.setPersonCnt(room.getPersonCnt() - 1);
-            room.getUsersId().remove(user.getId());
+        if (user.getId().equals(room.getOwner().getId())) {
+            User user1 = userRepository.findById(room.getUsersId().get(0)).orElseThrow();
+            room.setOwner(user1);
         }
 
+        room.getUsersId().remove(user.getId());
+        user.getRoomsList().remove(roomId);
+        userRepository.save(user);
         roomRepository.save(room);
-    }
 
-    public List<RoomResponseDto> searchRooms(String name, RoomType type) {
-        if (name == null) {
-            return roomRepository.findAllByType(type)
-                    .stream()
-                    .map(this::toRoomResponseDto)
-                    .collect(Collectors.toList());
+        if (room.getUsersId().isEmpty()) {
+            room.setAvailable(false);
+            roomRepository.delete(room);
         }
-        if (type == null) {
-            return roomRepository.findAllByNameContaining(name)
-                    .stream()
-                    .map(this::toRoomResponseDto)
-                    .collect(Collectors.toList());
-        }
-        return roomRepository.findAllByNameContainingAndType(name, type)
-                .stream()
-                .map(this::toRoomResponseDto)
-                .collect(Collectors.toList());
     }
 
     private RoomResponseDto toRoomResponseDto(Room room) {
+        User user = getCurrentUser();
+        boolean join;
+        join = user.getRoomsList().contains(room.getId());
         return RoomResponseDto.builder()
                 .roomId(room.getId())
                 .name(room.getName())
+                .description(room.getDescription())
                 .isLocked(room.getIsLocked())
                 .type(room.getType())
                 .available(room.getAvailable())
-                .fullRoom(room.getFullRoom())
-                .personCnt(room.getPersonCnt())
                 .maxPeople(room.getMaxPeople())
+                .usersCnt(room.getUsersId().size())
+                .isJoined(join)
                 .ownerName(Optional.ofNullable(room.getOwner())
                         .map(User::getName)
                         .orElse("Unknown"))
                 .build();
+    }
+
+    public void deleteRoom(String roomId) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new NoRoomException("없는방이에유"));
+        User user = getCurrentUser();
+        if (room.getOwner().equals(user)) {
+            userRepository.findUsersByRoomId(room.getId())
+                    .forEach(u -> {
+                        u.getRoomsList().remove(room.getId());
+                        userRepository.save(u);
+                    });
+            roomRepository.delete(room);
+        }
     }
 }

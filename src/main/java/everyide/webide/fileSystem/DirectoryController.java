@@ -21,19 +21,33 @@ public class DirectoryController {
 
     @PostMapping("api/directories")
     public ResponseEntity<?> createDirectory(@RequestBody CreateDirectoryRequest createDirectoryRequest) {
-        directoryService.createDirectory(createDirectoryRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body("디렉토리 생성완료.");
+        String status = directoryService.createDirectory(createDirectoryRequest);
+        if (status.equals("ok")) {
+            return ResponseEntity.status(HttpStatus.OK).body("디렉토리 생성완료.");
+        } else if (status.equals("already")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이미 사용중인 이름입니다.");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("디렉토리 생성불가.");
+        }
     }
 
     @PatchMapping("api/directories")
     public ResponseEntity<?> updateDirectory(@RequestBody UpdateDirectoryRequest updateDirectoryRequest) {
-        directoryService.updateDirectory(updateDirectoryRequest);
-        return ResponseEntity.status(HttpStatus.OK).body("디렉토리 수정완료.");
+        String status = directoryService.updateDirectory(updateDirectoryRequest);
+        if (status.equals("ok")) {
+            return ResponseEntity.status(HttpStatus.OK).body("디렉토리 업데이트 완료.");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("디렉토리 업데이트 실패.");
+        }
     }
 
     @DeleteMapping("api/directories")
     public ResponseEntity<?> deleteDirectory(@RequestBody DeleteDirectoryRequest deleteDirectoryRequest) {
-        directoryService.deleteDirectory(deleteDirectoryRequest);
-        return ResponseEntity.status(HttpStatus.OK).body("디렉토리 삭제완료.");
+        String status = directoryService.deleteDirectory(deleteDirectoryRequest);
+        if (status.equals("ok")) {
+            return ResponseEntity.status(HttpStatus.OK).body("디렉토리 삭제완료.");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("디렉토리 삭제실패.");
+        }
     }
 }

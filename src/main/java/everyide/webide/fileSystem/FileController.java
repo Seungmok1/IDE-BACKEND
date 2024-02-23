@@ -12,9 +12,9 @@ public class FileController {
 
     private final FileService fileService;
 
-    @GetMapping("/api/{userId}/filetree/{containerName}")
-    public  ResponseEntity<FileTreeResponse> getFileTree(@PathVariable("userId") Long userId, @PathVariable("containerName") String containerName) {
-        return ResponseEntity.ok(fileService.listFilesAndDirectories(userId, containerName));
+    @GetMapping("/api/{id}/filetree/{containerName}")
+    public  ResponseEntity<FileTreeResponse> getFileTree(@PathVariable("id") String id, @PathVariable("containerName") String containerName) {
+        return ResponseEntity.ok(fileService.listFilesAndDirectories(id, containerName));
     }
 
     @GetMapping("/api/containers/{containerId}/files")
@@ -30,19 +30,33 @@ public class FileController {
 
     @PostMapping("api/files")
     public ResponseEntity<?> createFile(@RequestBody CreateFileRequest createFileRequest) {
-        fileService.createFile(createFileRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body("파일 생성완료.");
+        String status = fileService.createFile(createFileRequest);
+        if (status.equals("ok")) {
+            return ResponseEntity.status(HttpStatus.OK).body("파일 생성완료.");
+        } else if (status.equals("already used")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이미 사용중인 이름입니다.");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("존재하지 않는 경로입니다.");
+        }
     }
 
     @PatchMapping("api/files")
     public ResponseEntity<?> updateFile(@RequestBody UpdateFileRequest updateFileRequest) {
-        fileService.updateFile(updateFileRequest);
-        return ResponseEntity.status(HttpStatus.OK).body("파일 수정완료.");
+        String status = fileService.updateFile(updateFileRequest);
+        if (status.equals("ok")) {
+            return ResponseEntity.status(HttpStatus.OK).body("파일 업데이트 완료.");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("파일 업데이트 실패.");
+        }
     }
 
     @DeleteMapping("api/files")
     public ResponseEntity<?> deleteFile(@RequestBody DeleteFileRequest deleteFileRequest) {
-        fileService.deleteFile(deleteFileRequest);
-        return ResponseEntity.status(HttpStatus.OK).body("파일 삭제완료.");
+        String status = fileService.deleteFile(deleteFileRequest);
+        if (status.equals("ok")) {
+            return ResponseEntity.status(HttpStatus.OK).body("파일 삭제 완료.");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("파일 삭제 실패.");
+        }
     }
 }
