@@ -5,7 +5,6 @@ resources:
   - frontend.yaml
   - nginx.yaml
   - pvc.yaml
-  - service.yaml
 configMapGenerator:
   - name: nginx
     files:
