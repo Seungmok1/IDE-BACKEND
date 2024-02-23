@@ -20,8 +20,6 @@ public class RestTemplateConfig {
 
         // 요청 구성을 위한 RequestConfig 생성
         RequestConfig requestConfig = RequestConfig.custom()
-                .setSocketTimeout(10000)  // 읽기(소켓) 타임아웃을 10초로 설정
-                .setConnectTimeout(5000)  // 연결 타임아웃을 5초로 설정
                 .build();
 
         // HttpClient에 프록시 및 RequestConfig 적용
