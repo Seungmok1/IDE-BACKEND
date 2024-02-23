@@ -44,4 +44,8 @@ public class RoomController {
         roomService.leaveRoom(roomId);
     }
 
+    @DeleteMapping("/api/community/{roomId}")
+    public void communityDelete(@PathVariable("roomId") String roomId) {
+        roomService.deleteRoom(roomId);
+    }
 }
