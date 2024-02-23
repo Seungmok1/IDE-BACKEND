@@ -1,4 +1,4 @@
-package everyide.webide.chat.domain;
+package everyide.webide.chat.domain.dto;
 
 import lombok.Getter;
 

@@ -18,9 +18,15 @@ public class Chat extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
-    @OneToOne
-    private Container container;
+    private Long containerId;
     @OneToMany
-    private List<User> users;
+    private List<Message> messages;
+
+    public Chat(Long containerId) {
+        this.containerId = containerId;
+    }
+
+    public void addMessage(Message message) {
+        messages.add(message);
+    }
 }
