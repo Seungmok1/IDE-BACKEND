@@ -86,6 +86,10 @@ public class RoomService {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new NoRoomException("Room not found"));
 
+        if (room.getMaxPeople() == room.getUsersId().size()) {
+            throw new NoRoomException("Member is full");
+        }
+
         // 비밀번호가 설정된 방인 경우, 비밀번호 확인
         validateRoomAccess(room, password);
 
@@ -133,7 +137,7 @@ public class RoomService {
         return EnterRoomResponseDto.builder()
                 .room(room)
                 .usersName(usersNames)
-                .ownerId(room.getOwner().getId())
+                .ownerName(room.getOwner().getName())
                 .build();
     }
 
