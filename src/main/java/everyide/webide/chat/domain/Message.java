@@ -12,7 +12,7 @@ import java.util.UUID;
 //@Document(collection = "message")\
 @Entity
 @Getter
-@ToString
+//@ToString
 @NoArgsConstructor
 public class Message{
 

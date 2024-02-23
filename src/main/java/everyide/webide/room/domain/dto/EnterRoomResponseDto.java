@@ -9,13 +9,13 @@ import java.util.List;
 @Data
 public class EnterRoomResponseDto {
     private Room room;
-    private Long ownerId;
+    private String ownerName;
     private List<String> usersName;
 
     @Builder
-    public EnterRoomResponseDto(Room room, Long ownerId, List<String> usersName) {
+    public EnterRoomResponseDto(Room room, String ownerName, List<String> usersName) {
         this.room = room;
-        this.ownerId = ownerId;
+        this.ownerName = ownerName;
         this.usersName = usersName;
     }
 }

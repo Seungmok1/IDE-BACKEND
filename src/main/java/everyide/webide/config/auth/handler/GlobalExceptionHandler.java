@@ -24,12 +24,12 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ValidateRoomException.class)
-    public ResponseEntity<Object> handleRoomDestroyException(ValidateRoomException ex) {
+    public ResponseEntity<Object> handleValidateRoomException(ValidateRoomException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(NoRoomException.class)
-    public ResponseEntity<Object> handleRoomDestroyException(NoRoomException ex) {
+    public ResponseEntity<Object> handleNoRoomException(NoRoomException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.REQUEST_TIMEOUT);
     }
 }

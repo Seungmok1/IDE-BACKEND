@@ -22,6 +22,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
+
     private final UserRepository userRepository;
 
     @Override
