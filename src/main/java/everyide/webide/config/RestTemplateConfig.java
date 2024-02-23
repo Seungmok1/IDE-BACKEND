@@ -16,7 +16,7 @@ public class RestTemplateConfig {
     @Bean(name = "proxyRestTemplate")
     public RestTemplate restTemplate() {
         // 프록시 설정
-        HttpHost proxy = new HttpHost("krmp-proxy.9rum.cc", 3128);
+        HttpHost proxy = new HttpHost("https","krmp-proxy.9rum.cc", 3128);
 
         // 요청 구성을 위한 RequestConfig 생성
         RequestConfig requestConfig = RequestConfig.custom()
