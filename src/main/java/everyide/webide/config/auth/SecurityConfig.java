@@ -109,12 +109,19 @@ public class SecurityConfig {
         //토큰 발급 시작
         String token = jwtTokenProvider.createToken(authentication);
         String refresh = jwtTokenProvider.createRefreshToken(authentication);
+        log.info("test={}", authentication.getName());
+        log.info("test={}", authentication.getAuthorities());
+        log.info("test={}", authentication.getDetails());
+        log.info("test={}", authentication.getClass());
+        log.info("test={}", authentication.getPrincipal());
+
         log.info(token);
         log.info(refresh);
         ObjectMapper om = new ObjectMapper();
 
         response.addHeader("Authorization", "Bearer " + token);
         log.info("AccessToken in Header={}", token);
+        log.info("header={}", response.getHeader("Authorization"));
 
         Cookie refreshTokenCookie = new Cookie("RefreshToken", refresh);
         refreshTokenCookie.setHttpOnly(true);
@@ -162,7 +169,7 @@ public class SecurityConfig {
         corsConfiguration.addAllowedHeader("*");
         corsConfiguration.addExposedHeader("*");
         corsConfiguration.setAllowCredentials(true);
-        corsConfiguration.setAllowedOrigins(List.of("https://ide-frontend-six.vercel.app"));
+        corsConfiguration.setAllowedOrigins(List.of("https://ide-frontend-wheat.vercel.app/login", "https://ide-frontend-six.vercel.app", "https://ide-frontend-wheat.vercel.app"));
 //        corsConfiguration.setAllowedOrigins(List.of("http://localhost:5173"));
         corsConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
 
