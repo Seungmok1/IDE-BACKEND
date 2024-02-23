@@ -62,14 +62,14 @@ public class WebSocketEventListener {
         return value;
     }
 
-    private User getUserFromToken(String token) {
-        if (!jwtTokenProvider.validateToken(token).equals("Success")) {
-            System.out.println(jwtTokenProvider.validateToken(token));
-            log.error("token 오류");
-            throw new SecurityException("Invalid token");
-        }
-        String userEmail = jwtTokenProvider.getClaims(token).getSubject();
-        return userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new EntityNotFoundException("User not found for email: " + userEmail));
-    }
+//    private User getUserFromToken(String token) {
+//        if (!jwtTokenProvider.validateToken(token).equals("Success")) {
+//            System.out.println(jwtTokenProvider.validateToken(token));
+//            log.error("token 오류");
+//            throw new SecurityException("Invalid token");
+//        }
+//        String userEmail = jwtTokenProvider.getClaims(token).getSubject();
+//        return userRepository.findByEmail(userEmail)
+//                .orElseThrow(() -> new EntityNotFoundException("User not found for email: " + userEmail));
+//    }
 }
