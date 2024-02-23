@@ -139,6 +139,7 @@ public class SecurityConfig {
         log.info("Response Body insert User");
         String result = om.registerModule(new JavaTimeModule()).writeValueAsString(userDto);
         response.getWriter().write(result);
+//        response.sendRedirect("http://localhost:5173/oauth2/redirect/?token="+token);
         response.sendRedirect("https://ide-frontend-six.vercel.app/oauth2/redirect/?token="+token);
     }
 
@@ -162,6 +163,7 @@ public class SecurityConfig {
         corsConfiguration.addExposedHeader("*");
         corsConfiguration.setAllowCredentials(true);
         corsConfiguration.setAllowedOrigins(List.of("https://ide-frontend-six.vercel.app"));
+//        corsConfiguration.setAllowedOrigins(List.of("http://localhost:5173"));
         corsConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
