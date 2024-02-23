@@ -21,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -73,11 +74,14 @@ public class RoomService {
         if (name == null) {
             return roomRepository.findAllByAvailableTrue()
                     .stream()
+                    .sorted(Comparator.comparing(Room::getCreateDate).reversed())
                     .map(this::toRoomResponseDto)
                     .collect(Collectors.toList());
         }
         return roomRepository.findAllByNameContaining(name)
                 .stream()
+                .filter(Room::getAvailable)
+                .sorted(Comparator.comparing(Room::getCreateDate).reversed())
                 .map(this::toRoomResponseDto)
                 .collect(Collectors.toList());
     }
@@ -85,24 +89,27 @@ public class RoomService {
     public EnterRoomResponseDto enteredRoom(String roomId, String password) {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new NoRoomException("Room not found"));
-
-        if (room.getMaxPeople() == room.getUsersId().size()) {
-            throw new NoRoomException("Member is full");
-        }
-
-        // 비밀번호가 설정된 방인 경우, 비밀번호 확인
-        validateRoomAccess(room, password);
-
         User currentUser = getCurrentUser();
 
-        // 현재 사용자가 방의 사용자 목록에 없다면 추가
-        addUserToRoomIfNotPresent(room, currentUser);
+        if (room.getUsersId().contains(currentUser.getId())) {
+            validateRoomAccess(room, password);
+            List<String> usersNames = getUsersNamesFromRoom(room);
 
-        // 사용자 이름 리스트 생성
-        List<String> usersNames = getUsersNamesFromRoom(room);
+            // 응답 객체 생성 및 반환
+            return buildEnterRoomResponse(room, usersNames);
+        } else {
+            if (room.getMaxPeople() <= room.getUsersId().size()) {
+                throw new NoRoomException("Member is full");
+            }
+            // 비밀번호가 설정된 방인 경우, 비밀번호 확인
+            validateRoomAccess(room, password);
+            // 현재 사용자가 방의 사용자 목록에 없다면 추가
+            addUserToRoomIfNotPresent(room, currentUser);
 
-        // 응답 객체 생성 및 반환
-        return buildEnterRoomResponse(room, usersNames);
+            // 사용자 이름 리스트 생성
+            List<String> usersNames = getUsersNamesFromRoom(room);
+            return buildEnterRoomResponse(room, usersNames);
+        }
     }
 
     private void validateRoomAccess(Room room, String password) {
@@ -137,6 +144,7 @@ public class RoomService {
         return EnterRoomResponseDto.builder()
                 .room(room)
                 .usersName(usersNames)
+                .ownerId(room.getOwner().getId())
                 .ownerName(room.getOwner().getName())
                 .build();
     }
@@ -214,5 +222,19 @@ public class RoomService {
                         .map(User::getName)
                         .orElse("Unknown"))
                 .build();
+    }
+
+    public void deleteRoom(String roomId) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new NoRoomException("없는방이에유"));
+        User user = getCurrentUser();
+        if (room.getOwner().equals(user)) {
+            userRepository.findUsersByRoomId(room.getId())
+                    .forEach(u -> {
+                        u.getRoomsList().remove(room.getId());
+                        userRepository.save(u);
+                    });
+            roomRepository.delete(room);
+        }
     }
 }
