@@ -162,10 +162,13 @@ public class ContainerService {
             }
 
             if (findContainer.getSourceContainer() != null) {
-                Container sourceContainer = containerRepository.findById(findContainer.getSourceContainer())
-                        .orElseThrow(() -> new EntityNotFoundException("Source container not found."));
-                sourceContainer.unshare();
-                containerRepository.save(sourceContainer);
+                Optional<Container> optionalContainer = containerRepository.findById(findContainer.getSourceContainer());
+
+                if (optionalContainer.isPresent()) {
+                    Container sourceContainer = optionalContainer.get();
+                    sourceContainer.unshare();
+                    containerRepository.save(sourceContainer);
+                }
             }
 
             containerRepository.delete(findContainer);
