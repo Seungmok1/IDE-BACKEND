@@ -21,6 +21,7 @@ public class File extends BaseEntity {
     private String id;
 
     private String path;
+    @Lob
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
