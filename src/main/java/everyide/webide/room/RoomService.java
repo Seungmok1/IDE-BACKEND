@@ -182,14 +182,14 @@ public class RoomService {
         }
 
         room.getUsersId().remove(user.getId());
+        user.getRoomsList().remove(roomId);
+        userRepository.save(user);
+        roomRepository.save(room);
 
         if (room.getUsersId().isEmpty()) {
             room.setAvailable(false);
+            roomRepository.delete(room);
         }
-        user.getRoomsList().remove(roomId);
-
-        userRepository.save(user);
-        roomRepository.save(room);
     }
 
     private RoomResponseDto toRoomResponseDto(Room room) {
