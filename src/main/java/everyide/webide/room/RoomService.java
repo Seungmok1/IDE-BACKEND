@@ -144,6 +144,7 @@ public class RoomService {
         return EnterRoomResponseDto.builder()
                 .room(room)
                 .usersName(usersNames)
+                .ownerId(room.getOwner().getId())
                 .ownerName(room.getOwner().getName())
                 .build();
     }

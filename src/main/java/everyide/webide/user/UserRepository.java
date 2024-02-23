@@ -13,7 +13,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findAllByRefreshToken(String refreshToken);
     Optional<User> findByEmail(String email);
 
-    @Query("SELECT u FROM User u WHERE :roomID MEMBER OF u.roomsList")
+    @Query("SELECT u FROM User u WHERE :roomId MEMBER OF u.roomsList")
     List<User> findUsersByRoomId(@Param("roomId") String roomId);
 
 }
