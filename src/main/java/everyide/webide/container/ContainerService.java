@@ -157,7 +157,12 @@ public class ContainerService {
                 findContainer.getRoom().removeContainer(findContainer);
             }
 
-            containerRepository.save(findContainer.getSourceContainer().unshare());
+            try {
+                containerRepository.save(findContainer.getSourceContainer().unshare());
+            } catch (Exception e) {
+                containerRepository.save(findContainer);
+            }
+
             containerRepository.delete(findContainer);
             directoryService.deleteDirectory(new DeleteDirectoryRequest(deleteContainerRequest.getEmail(), "/" + deleteContainerRequest.getName()));
 
