@@ -24,7 +24,7 @@ public class AuthController {
 
     private final UserService userService;
 
-    @PostMapping("/signup")
+    @PostMapping("/backend/signup")
     public ResponseEntity<?> signUpUser(@RequestBody SignRequestDto signRequestDto) {
         userService.signUpUser(signRequestDto);
         return ResponseEntity.ok().build();
