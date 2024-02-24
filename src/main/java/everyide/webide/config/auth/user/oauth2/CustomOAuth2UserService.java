@@ -87,6 +87,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         log.info("find all info from New User");
 
         User newUser = User.createNewUser(provider, providerId, name, email, imageUrl, role);
+        log.info("provider={}", provider);
+        log.info("providerId={}", providerId);
+        log.info("name={}", name);
+        log.info("email={}", email);
+        log.info("imageUrl={}", imageUrl);
 
         Directory rootDirectory = directoryService.createRootDirectory(newUser.getEmail());
         if (rootDirectory != null) {
