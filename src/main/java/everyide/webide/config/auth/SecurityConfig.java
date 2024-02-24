@@ -78,7 +78,7 @@ public class SecurityConfig {
                         .failureHandler(this::onAuthenticationFailure)
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/logout")
+                        .logoutUrl("/backend/logout")
                         .logoutSuccessHandler(new CustomLogoutSuccessHandler(jwtTokenProvider, customUserDetailsService))
                         .deleteCookies("JSESSIONID")
                         .permitAll()
