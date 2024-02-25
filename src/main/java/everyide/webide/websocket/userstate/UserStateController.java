@@ -20,7 +20,7 @@ public class UserStateController {
     private final MessageRepository messageRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
-    @SubscribeMapping("/container/{containerId}/enter")
+    @SubscribeMapping("/api/container/{containerId}/enter")
     public void enter(SimpMessageHeaderAccessor headerAccessor, @DestinationVariable String containerId) {
         sendUserState(containerId);
 

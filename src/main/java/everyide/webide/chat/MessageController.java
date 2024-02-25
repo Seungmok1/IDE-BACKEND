@@ -33,8 +33,8 @@ public class MessageController {
     private final UserRepository userRepository;
 
     @Transactional
-    @MessageMapping("/container/{containerId}/chat")
-    @SendTo("/topic/container/{containerId}/chat")
+    @MessageMapping("/api/container/{containerId}/chat")
+    @SendTo("/api/topic/container/{containerId}/chat")
     public MessageResponseDto message(MessageRequestDto messageRequestDto, @DestinationVariable String containerId) {
         User user = userRepository.findById(messageRequestDto.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException("없는 유저"));

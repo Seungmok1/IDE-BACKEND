@@ -17,7 +17,7 @@ public class TerminalController {
 
     private final TerminalService terminalService;
 
-    @MessageMapping("/container/{containerId}/terminal")
+    @MessageMapping("/api/container/{containerId}/terminal")
     @SendToUser(value = "/queue/container/{containerId}/terminal", broadcast = false)
     public TerminalExecuteResponseDto execute(
             @DestinationVariable Long containerId,
