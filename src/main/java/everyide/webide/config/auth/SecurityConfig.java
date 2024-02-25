@@ -37,6 +37,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -75,12 +76,12 @@ public class SecurityConfig {
                         .failureHandler(this::onAuthenticationFailure)
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/logout")
+                        .logoutUrl("/api/logout")
                         .logoutSuccessHandler(new CustomLogoutSuccessHandler(jwtTokenProvider, customUserDetailsService))
                         .deleteCookies("JSESSIONID")
                         .permitAll()
                 )
-                .addFilter(new JwtAuthenticationFilter(jwtTokenProvider, userRepository, authenticationManager(customUserDetailsService), customUserDetailsService, "/auth"))
+                .addFilter(new JwtAuthenticationFilter(jwtTokenProvider, userRepository, authenticationManager(customUserDetailsService), customUserDetailsService, "/api/auth"))
                 .addFilterAfter(new JwtAuthorizationFilter(userRepository, jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
 //                        .requestMatchers(
@@ -144,7 +145,7 @@ public class SecurityConfig {
         String result = om.registerModule(new JavaTimeModule()).writeValueAsString(userDto);
         response.getWriter().write(result);
 //        response.sendRedirect("http://localhost:5173/oauth2/redirect/?token="+token);
-        response.sendRedirect("https://ide-frontend-six.vercel.app/oauth2/redirect/?token="+token);
+        response.sendRedirect("https://k547f55f71a44a.user-app.krampoline.com/oauth2/redirect/?token="+token);
     }
 
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
@@ -166,7 +167,10 @@ public class SecurityConfig {
         corsConfiguration.addAllowedHeader("*");
         corsConfiguration.addExposedHeader("*");
         corsConfiguration.setAllowCredentials(true);
-        corsConfiguration.setAllowedOrigins(List.of("https://ide-frontend-wheat.vercel.app/login", "https://ide-frontend-six.vercel.app", "https://ide-frontend-wheat.vercel.app", "http://localhost:5173"));
+
+//      corsConfiguration.setAllowedOrigins(List.of("https://ide-frontend-wheat.vercel.app/login", "https://ide-frontend-six.vercel.app", "https://ide-frontend-wheat.vercel.app"));
+        corsConfiguration.setAllowedOrigins(List.of("https://ide-frontend-wheat.vercel.app/login", "krmp-d2hub-idock.9rum.cc/dev-test/repo_85a78215dc68", "https://ide-frontend-six.vercel.app", "https://ide-frontend-wheat.vercel.app", "http://localhost:3000", "https://k547f55f71a44a.user-app.krampoline.com"));
+
         corsConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
