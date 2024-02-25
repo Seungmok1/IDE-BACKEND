@@ -145,7 +145,7 @@ public class SecurityConfig {
         String result = om.registerModule(new JavaTimeModule()).writeValueAsString(userDto);
         response.getWriter().write(result);
 //        response.sendRedirect("http://localhost:5173/oauth2/redirect/?token="+token);
-        response.sendRedirect("https://ide-frontend-six.vercel.app/oauth2/redirect/?token="+token);
+        response.sendRedirect("https://k547f55f71a44a.user-app.krampoline.com/oauth2/redirect/?token="+token);
     }
 
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
