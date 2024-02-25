@@ -84,16 +84,16 @@ public class SecurityConfig {
                 .addFilter(new JwtAuthenticationFilter(jwtTokenProvider, userRepository, authenticationManager(customUserDetailsService), customUserDetailsService, "/api/auth"))
                 .addFilterAfter(new JwtAuthorizationFilter(userRepository, jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                new AntPathRequestMatcher("/"),
-                                new AntPathRequestMatcher("/signup"),
-                                new AntPathRequestMatcher("/login"),
-                                new AntPathRequestMatcher("/auth"),
-                                new AntPathRequestMatcher("/token/**"),
-                                new AntPathRequestMatcher("/logout/**")
-                        ).permitAll()
-                        .anyRequest().authenticated())
-//                        .anyRequest().permitAll())
+//                        .requestMatchers(
+//                                new AntPathRequestMatcher("/"),
+//                                new AntPathRequestMatcher("/signup"),
+//                                new AntPathRequestMatcher("/login"),
+//                                new AntPathRequestMatcher("/auth"),
+//                                new AntPathRequestMatcher("/token/**"),
+//                                new AntPathRequestMatcher("/logout/**")
+//                        ).permitAll()
+//                        .anyRequest().authenticated())
+                        .anyRequest().permitAll())
                 .exceptionHandling(configurer -> configurer
                 .accessDeniedHandler(new JwtAccessDeniedHandler())
                 .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
