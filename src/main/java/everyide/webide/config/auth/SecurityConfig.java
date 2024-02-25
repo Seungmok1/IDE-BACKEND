@@ -37,6 +37,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -83,16 +84,16 @@ public class SecurityConfig {
                 .addFilter(new JwtAuthenticationFilter(jwtTokenProvider, userRepository, authenticationManager(customUserDetailsService), customUserDetailsService, "/api/auth"))
                 .addFilterAfter(new JwtAuthorizationFilter(userRepository, jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers(
-//                                new AntPathRequestMatcher("/"),
-//                                new AntPathRequestMatcher("/signup"),
-//                                new AntPathRequestMatcher("/login"),
-//                                new AntPathRequestMatcher("/auth"),
-//                                new AntPathRequestMatcher("/token/**"),
-//                                new AntPathRequestMatcher("/logout/**")
-//                        ).permitAll()
-//                        .anyRequest().authenticated())
-                        .anyRequest().permitAll())
+                        .requestMatchers(
+                                new AntPathRequestMatcher("/"),
+                                new AntPathRequestMatcher("/signup"),
+                                new AntPathRequestMatcher("/login"),
+                                new AntPathRequestMatcher("/auth"),
+                                new AntPathRequestMatcher("/token/**"),
+                                new AntPathRequestMatcher("/logout/**")
+                        ).permitAll()
+                        .anyRequest().authenticated())
+//                        .anyRequest().permitAll())
                 .exceptionHandling(configurer -> configurer
                 .accessDeniedHandler(new JwtAccessDeniedHandler())
                 .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
