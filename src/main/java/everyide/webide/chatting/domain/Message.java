@@ -1,9 +1,8 @@
-package everyide.webide.chat.domain;
+package everyide.webide.chatting.domain;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.*;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;

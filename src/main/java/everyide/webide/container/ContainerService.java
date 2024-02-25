@@ -1,6 +1,5 @@
 package everyide.webide.container;
 
-import everyide.webide.chat.ChatService;
 import everyide.webide.container.domain.*;
 import everyide.webide.fileSystem.DirectoryRepository;
 import everyide.webide.fileSystem.DirectoryService;
@@ -43,7 +42,6 @@ public class ContainerService {
     private final DirectoryService directoryService;
     private final RoomRepository roomRepository;
     private final FileRepository fileRepository;
-    private final ChatService chatService;
 
     public List<ContainerDetailResponse> getContainer(String id) {
         try {
@@ -124,8 +122,6 @@ public class ContainerService {
                     .build();
             directoryRepository.save(directory);
             fileService.createDefaultFile(path, createContainerRequest.getLanguage());
-
-            chatService.createChat(newContainer.getId());
 
             return ContainerDetailResponse.builder()
                     .id(newContainer.getId())
