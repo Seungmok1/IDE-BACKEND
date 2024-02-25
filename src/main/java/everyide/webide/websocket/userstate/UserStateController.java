@@ -1,6 +1,5 @@
 package everyide.webide.websocket.userstate;
 
-import everyide.webide.chat.MessageRepository;
 import everyide.webide.websocket.WebSocketRoomUserSessionMapper;
 import everyide.webide.websocket.domain.EnterResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -17,19 +16,15 @@ import org.springframework.stereotype.Controller;
 public class UserStateController {
 
     private final WebSocketRoomUserSessionMapper webSocketRoomUserSessionMapper;
-    private final MessageRepository messageRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
-    @SubscribeMapping("/api/container/{containerId}/enter")
-    public void enter(SimpMessageHeaderAccessor headerAccessor, @DestinationVariable String containerId) {
+    @SubscribeMapping("/container/{containerId}/enter")
+    public void enter( @DestinationVariable String containerId) {
         sendUserState(containerId);
-
     }
 
     // 유저가 입장이나 퇴장할 때 수정된 유저들의 정보를 브로드캐스팅
     public void sendUserState(String containerId) {
-
-
         messagingTemplate.convertAndSend(
                 "/topic/container/" + containerId + "/state",
                 EnterResponseDto.builder()

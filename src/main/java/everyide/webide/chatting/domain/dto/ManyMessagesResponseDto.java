@@ -1,4 +1,4 @@
-package everyide.webide.chat.domain.dto;
+package everyide.webide.chatting.domain.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
