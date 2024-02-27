@@ -37,6 +37,9 @@ REST API를 통하여 개인 컨테이너 CRUD를 구현하였고 WebSocket API�
 
 ## 배포
 
+![cloud](https://github.com/every-ide/IDE-BACKEND/assets/133872161/2d83d070-8098-42ba-accf-dc9c08115b30)
+
+
 ## AWS Lightsail
 
 Amazon Linux2 Instance를 생성합니다. Gradle build를 활용해 jar파일을 생성하여 서버에서 nohup으로 실행하였습니다.
