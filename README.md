@@ -36,12 +36,18 @@ REST API를 통하여 개인 컨테이너 CRUD를 구현하였고 WebSocket API�
 유저, 컨테이너, 디렉토리, 파일 간의 연관관계를 설정하여 파일과 디렉토리의 CRUD를 구현하였고, 컨테이너의 최상위 디렉토리 내 전체 파일트리 구조를 제공합니다. 로컬 파일을 업로드 할 수 있습니다.
 
 ## 배포
-### AWS
+### AWS Lightsail
+Amazon Linux2 Instance를 생성합니다. Gradle build를 활용해 jar파일을 생성하여 서버에서 nohup으로 실행하였습니다.
+- Instance Size (1GB memory / 2vCPU processing / 40GB SSD storage / 2TB transfer)
+- RDS는 별도 사용하지 않고, 인스턴스 내 MySQL 설치하여 사용하였습니다.
+- FileZilla를 사용하여 인스턴스 내 파일 업로드를 진행하였습니다.
 
 ### Oracle Cloud
+Ubuntu Instance를 생성합니다. Amazon Lightsail과 동일하게 진행하였습니다.
+- 평생 무료티어가 가능하지만, 서버가 자주 다운되고, 성능이 좋지 않아 배포 후 테스트 중 중단하였습니다.
 
 ### Krampoline
-github 레포지토리의 코드를 D2Hub repository에 이미지를 빌드하여 Kargo를 통해 DKOS Cluster에 D2Hub 이미지를 배포한다.
+github 레포지토리의 코드를 D2Hub repository에 이미지를 빌드하여 Kargo를 통해 DKOS Cluster에 D2Hub 이미지를 배포합니다.
  - FrontEnd Pod : Frontend App
  - BackEnd Pod : Backend API Server
  - Database Pod : MySQL
