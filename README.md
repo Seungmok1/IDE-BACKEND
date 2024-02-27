@@ -37,16 +37,19 @@ REST API를 통하여 개인 컨테이너 CRUD를 구현하였고 WebSocket API�
 
 ## 배포
 ### AWS Lightsail
+<img src="https://i0.wp.com/us.wordcamp.org/2021/files/2021/09/AWS-Lightsail.png?fit=1200%2C436&ssl=1&w=640">
 Amazon Linux2 Instance를 생성합니다. Gradle build를 활용해 jar파일을 생성하여 서버에서 nohup으로 실행하였습니다.
 - Instance Size (1GB memory / 2vCPU processing / 40GB SSD storage / 2TB transfer)
 - RDS는 별도 사용하지 않고, 인스턴스 내 MySQL 설치하여 사용하였습니다.
 - FileZilla를 사용하여 인스턴스 내 파일 업로드를 진행하였습니다.
 
 ### Oracle Cloud
+<img src="https://e7.pngegg.com/pngimages/46/940/png-clipart-cloud-computing-salesforce-marketing-cloud-oracle-corporation-oracle-cloud-cloud-computing-company-text.png">
 Ubuntu Instance를 생성합니다. Amazon Lightsail과 동일하게 진행하였습니다.
 - 평생 무료티어가 가능하지만, 서버가 자주 다운되고, 성능이 좋지 않아 배포 후 테스트 중 중단하였습니다.
 
 ### Krampoline
+![image](https://github.com/every-ide/IDE-BACKEND/assets/133872161/53714d2b-e0df-4611-a29e-ca1523196dc8)
 github 레포지토리의 코드를 D2Hub repository에 이미지를 빌드하여 Kargo를 통해 DKOS Cluster에 D2Hub 이미지를 배포합니다.
  - FrontEnd Pod : Frontend App
  - BackEnd Pod : Backend API Server
