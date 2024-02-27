@@ -10,7 +10,7 @@
 |**Name**|정재우|권승목|김민식|윤혜진|
 |:---:|:---:|:---:|:---:|:---:|
 |**Picture**|<img src="https://avatars.githubusercontent.com/u/133872161?s=70&v=4" height= "80px" width= "80px">|<img src="https://avatars.githubusercontent.com/u/103080705?s=70&v=4" height= "80px" width= "80px">|<img src="https://avatars.githubusercontent.com/u/100274306?s=70&v=4" height= "80px" width= "80px">|<img src="https://avatars.githubusercontent.com/u/148074385?s=70&v=4" height= "80px" width= "80px">|
-|**Role**|Backend Lead, OAuth, AWS, Cloud System|WebSocket, Chatting, Session Management|ERD, API Docs, Terminal, Container, File Dir System|Credential Login, Krampoline, Docker, Local File Upload|
+|**Role**|Backend Lead, OAuth, AWS, Cloud System, Docker|WebSocket, Chatting, Session Management|ERD, API Docs, Terminal, Container, File Dir System|Credential Login, Krampoline, Docker, Local File Upload|
 |**Github**|<a href="https://github.com/JamieJai"><img src="http://img.shields.io/badge/JamieJai-green?style=social&logo=github"/>|<a href="https://github.com/Seungmok1"><img src="http://img.shields.io/badge/Seungmok1-green?style=social&logo=github"/>|<a href="https://github.com/k-minsik"><img src="http://img.shields.io/badge/k-minsik-green?style=social&logo=github"/>|<a href="https://github.com/Hyejin724"><img src="http://img.shields.io/badge/Hyejin724-green?style=social&logo=github"/>|
 
 ## 프로젝트 소개
