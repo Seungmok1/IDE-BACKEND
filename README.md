@@ -25,7 +25,7 @@
 
 ## 주요 기능
 ### 로그인
-crendtiial 로그인과 OAuth 로그인. 두 가지 방식으로 로그인 할 수 있습니다. Jwt을 발급하여 인증이 필요한 REST API를 구성하였고, 토큰이 만료되면 쿠키에 있는 Refresh Token을 통해서 새로 발급받을 수 있습니다.
+Crendtiial 로그인과 OAuth 로그인. 두 가지 방식으로 로그인 할 수 있습니다. Jwt을 발급하여 인증이 필요한 REST API를 구성하였고, 토큰이 만료되면 쿠키에 있는 Refresh Token을 통해서 새로 발급받을 수 있습니다.
 ### 개인 실습용 컨테이너 환경
 REST API를 통하여 개인 컨테이너 CRUD를 구현하였고 WebSocket API를 통하여 터미널을 사용할 수 있습니다.
 ### 스터디를 위한 커뮤니티 플랫폼
@@ -33,4 +33,18 @@ REST API를 통하여 개인 컨테이너 CRUD를 구현하였고 WebSocket API�
 ### STOMP
 사용자가 접속하면 WebSocket을 연결한 후 토픽을 구독하여 여러 목적으로 사용합니다. 이를 통하여 1:N 채팅 기능, 실시간 접속중인 유저의 정보 확인, 터미널을 사용할 수 있습니다.
 ### 파일 시스템
-유저, 컨테이너, 디렉토리, 파일 간의 연관관계를 설정하여 파일과 디렉토리의 CRUD를 구현하였고, 컨테이너의 최상위 디렉토리 내 전체 파일트리 구조를 제공합니다.
+유저, 컨테이너, 디렉토리, 파일 간의 연관관계를 설정하여 파일과 디렉토리의 CRUD를 구현하였고, 컨테이너의 최상위 디렉토리 내 전체 파일트리 구조를 제공합니다. 로컬 파일을 업로드 할 수 있습니다.
+
+## 배포
+### AWS
+
+### Oracle Cloud
+
+### Krampoline
+github 레포지토리의 코드를 D2Hub repository에 이미지를 빌드하여 Kargo를 통해 DKOS Cluster에 D2Hub 이미지를 배포한다.
+ - FrontEnd Pod : Frontend App
+ - BackEnd Pod : Backend API Server
+ - Database Pod : MySQL
+ - Nginx Pod : Nginx Proxy Server
+
+
