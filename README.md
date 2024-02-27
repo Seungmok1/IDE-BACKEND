@@ -40,7 +40,7 @@ REST API를 통하여 개인 컨테이너 CRUD를 구현하였고 WebSocket API�
 ![cloud](https://github.com/every-ide/IDE-BACKEND/assets/133872161/2d83d070-8098-42ba-accf-dc9c08115b30)
 
 
-## AWS Lightsail
+### AWS Lightsail
 
 Amazon Linux2 Instance를 생성합니다. Gradle build를 활용해 jar파일을 생성하여 서버에서 nohup으로 실행하였습니다.
 - Instance Size (1GB memory / 2vCPU processing / 40GB SSD storage / 2TB transfer)
@@ -48,13 +48,13 @@ Amazon Linux2 Instance를 생성합니다. Gradle build를 활용해 jar파일�
 - FileZilla를 사용하여 인스턴스 내 파일 업로드를 진행하였습니다.
 
 
-## Oracle Cloud Computing
+### Oracle Cloud Computing
 
 Ubuntu Instance를 생성합니다. Amazon Lightsail과 동일하게 진행하였습니다.
 - 평생 무료티어가 가능하지만, 서버가 자주 다운되고, 성능이 좋지 않아 배포 후 테스트 중 중단하였습니다.
 
 
-## Kakao Krampoline IDE
+### Kakao Krampoline IDE
 
 github 레포지토리의 코드를 D2Hub repository에 이미지를 빌드하여 Kargo를 통해 DKOS Cluster에 D2Hub 이미지를 배포합니다.
 - FrontEnd Pod : Frontend App
