@@ -37,15 +37,6 @@ REST API를 통하여 개인 컨테이너 CRUD를 구현하였고 WebSocket API�
 
 ## 배포
 
-<div style="display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap;">
-  <img src="https://i0.wp.com/us.wordcamp.org/2021/files/2021/09/AWS-Lightsail.png?fit=1200%2C436&ssl=1&w=640" width="250">
-  <img src="https://www.finops.org/wp-content/uploads/2022/11/Oracle_Cloud_rgb.png" width="250">
-  <img src="https://github.com/every-ide/IDE-BACKEND/assets/133872161/53714d2b-e0df-4611-a29e-ca1523196dc8" width="250">
-</div>
-
-
-<img src="https://i0.wp.com/us.wordcamp.org/2021/files/2021/09/AWS-Lightsail.png?fit=1200%2C436&ssl=1&w=640" width="250">
-
 ## AWS Lightsail
 
 Amazon Linux2 Instance를 생성합니다. Gradle build를 활용해 jar파일을 생성하여 서버에서 nohup으로 실행하였습니다.
@@ -54,17 +45,11 @@ Amazon Linux2 Instance를 생성합니다. Gradle build를 활용해 jar파일�
 - FileZilla를 사용하여 인스턴스 내 파일 업로드를 진행하였습니다.
 
 
-
-<img src="https://www.finops.org/wp-content/uploads/2022/11/Oracle_Cloud_rgb.png" width="250">
-
 ## Oracle Cloud Computing
 
 Ubuntu Instance를 생성합니다. Amazon Lightsail과 동일하게 진행하였습니다.
 - 평생 무료티어가 가능하지만, 서버가 자주 다운되고, 성능이 좋지 않아 배포 후 테스트 중 중단하였습니다.
 
-
-
-<img src="https://github.com/every-ide/IDE-BACKEND/assets/133872161/53714d2b-e0df-4611-a29e-ca1523196dc8" width="250">
 
 ## Kakao Krampoline IDE
 
